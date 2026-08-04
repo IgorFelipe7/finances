@@ -12,8 +12,8 @@ export const accountSchema = z.object({
   color: z.string(),
   is_active: z.boolean(),
   created_at: z.string(),
-  statement_closing_day: z.coerce.number().int().min(1).max(28).nullable().default(null),
-  statement_due_day: z.coerce.number().int().min(1).max(28).nullable().default(null),
+  statement_closing_day: z.coerce.number().int().min(1).max(31).nullable().default(null),
+  statement_due_day: z.coerce.number().int().min(1).max(31).nullable().default(null),
 })
 
 export type Account = z.infer<typeof accountSchema>
@@ -24,8 +24,8 @@ export const accountFormSchema = z
     type: accountTypeSchema,
     initial_balance: z.number('Informe um valor válido.'),
     color: z.string().min(1, 'Escolha uma cor.'),
-    statement_closing_day: z.number().int().min(1).max(28).nullable(),
-    statement_due_day: z.number().int().min(1).max(28).nullable(),
+    statement_closing_day: z.number('Informe um dia válido.').int().min(1).max(31).nullable(),
+    statement_due_day: z.number('Informe um dia válido.').int().min(1).max(31).nullable(),
   })
   .refine((data) => data.type !== 'credit_card' || !!data.statement_closing_day, {
     message: 'Informe o dia de fechamento da fatura.',

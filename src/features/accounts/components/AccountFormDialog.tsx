@@ -210,13 +210,14 @@ export function AccountFormDialog({
                         <Input
                           type="number"
                           min={1}
-                          max={28}
+                          max={31}
                           placeholder="Dia"
                           disabled={isPending}
                           value={field.value ?? ''}
-                          onChange={(event) =>
-                            field.onChange(event.target.value === '' ? null : event.target.valueAsNumber)
-                          }
+                          onChange={(event) => {
+                            const parsed = event.target.valueAsNumber
+                            field.onChange(event.target.value === '' || Number.isNaN(parsed) ? null : parsed)
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
@@ -234,13 +235,14 @@ export function AccountFormDialog({
                         <Input
                           type="number"
                           min={1}
-                          max={28}
+                          max={31}
                           placeholder="Dia"
                           disabled={isPending}
                           value={field.value ?? ''}
-                          onChange={(event) =>
-                            field.onChange(event.target.value === '' ? null : event.target.valueAsNumber)
-                          }
+                          onChange={(event) => {
+                            const parsed = event.target.valueAsNumber
+                            field.onChange(event.target.value === '' || Number.isNaN(parsed) ? null : parsed)
+                          }}
                         />
                       </FormControl>
                       <FormMessage />

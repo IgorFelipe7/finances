@@ -1,6 +1,6 @@
 import { snapshotToPromptFacts, type FinancialSnapshot } from '@/features/dashboard/lib/buildFinancialSnapshot'
 import { insightResponseSchema, type Insight } from '@/features/dashboard/schemas/insight.schema'
-import { getOpenAIClient } from '@/lib/openai'
+import { callOpenAI } from '@/lib/aiProxy'
 
 const SYSTEM_PROMPT = `Você é um consultor financeiro pessoal direto e caloroso, escrevendo para um app de finanças em português do Brasil.
 
@@ -19,10 +19,9 @@ Regras muito importantes:
 - Responda APENAS com um JSON no formato: { "insights": [ { "tone": "danger"|"warning"|"success"|"info", "headline": string (até 5 palavras), "message": string } ] }`
 
 export async function generateInsights(snapshot: FinancialSnapshot): Promise<Insight[]> {
-  const openai = getOpenAIClient()
   const facts = snapshotToPromptFacts(snapshot)
 
-  const completion = await openai.chat.completions.create({
+  const completion = await callOpenAI({
     model: 'gpt-4o-mini',
     response_format: { type: 'json_object' },
     messages: [

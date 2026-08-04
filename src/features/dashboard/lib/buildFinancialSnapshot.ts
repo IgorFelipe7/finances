@@ -228,8 +228,11 @@ export function snapshotToPromptFacts(snapshot: FinancialSnapshot): string {
   }
 
   if (snapshot.upcomingCharges.length > 0) {
-    lines.push('Próximas contas/faturas este mês:')
-    for (const c of snapshot.upcomingCharges.slice(0, 8)) lines.push(`- ${c.title}: ${formatCurrency(c.amount)} em ${c.date}`)
+    lines.push('Próximas contas/faturas este mês (NENHUMA delas vence hoje nem está atrasada — todas ainda têm dias pela frente):')
+    for (const c of snapshot.upcomingCharges.slice(0, 8)) {
+      const daysAway = Math.round((new Date(`${c.date}T00:00:00`).getTime() - new Date(`${snapshot.today}T00:00:00`).getTime()) / 86400000)
+      lines.push(`- ${c.title}: ${formatCurrency(c.amount)} em ${c.date} (faltam ${daysAway} dias)`)
+    }
   }
 
   if (snapshot.endingInstallments.length > 0) {

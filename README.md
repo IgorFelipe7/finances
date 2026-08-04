@@ -1,0 +1,102 @@
+# Finanças
+
+A personal finance manager with an AI layer built in — natural-language transaction entry, automatic recurring/fixed expense tracking, and a chat assistant that reasons over your real numbers instead of guessing them.
+
+Built as a single-page app on React 19 + Vite, backed by Supabase (Postgres, Auth, Realtime), with OpenAI (`gpt-4o-mini`) powering the language features.
+
+## Features
+
+### Smart Input
+Type a transaction the way you'd say it out loud — *"paguei 80 de pizza no Nubank"* — and it's parsed into a structured transaction (amount, category, account, date) automatically. The parser also detects recurring language ("todo mês", "assinatura", "mensalidade") and files the entry as a fixed expense on its own.
+
+### Recurring / Fixed Expenses
+Register a rent, subscription, or salary once and it keeps appearing every month — projected forward automatically — until you explicitly stop it. History stays intact even after cancellation. A dedicated page lets you:
+- See every active fixed expense/income with its monthly total and next charge date
+- Edit amount, title, category, or billing day without deleting and recreating
+- Preview a chronological timeline of upcoming charges across all recurring items
+
+### AI Dashboard Insights
+The dashboard computes real financial facts client-side — spending pace vs. income, safe-to-spend-per-day, bills due today or overdue, installments finishing this month — and hands them to an LLM to phrase into short, prioritized, actionable messages. Numbers are never invented by the model; if no API key is configured (or the call fails), a deterministic fallback generator produces the same messages without AI.
+
+### AI Chat Assistant
+A persistent chat launcher available from every page, streaming responses token-by-token. Every message is grounded in the same computed financial snapshot (balances, this month's income/expenses, upcoming and overdue bills, ending installments), so answers to "quanto posso gastar hoje?" or "vou estourar o orçamento?" are based on your actual data.
+
+### Accounts & Credit Cards
+Track checking, savings, investment, and credit card accounts with running balances. Credit cards support statement closing/due days and an invoice payment flow.
+
+### Transactions
+Full CRUD with income/expense/transfer types, installment plans (auto-projected month by month), categories, and per-account filtering. A Time Travel selector lets you view any past or future month.
+
+### Realtime Sync
+Changes made on one device propagate to others live via Supabase Realtime subscriptions on `transactions` and `accounts`.
+
+## Tech Stack
+
+| Layer | Choice |
+|---|---|
+| Framework | React 19 + TypeScript, built with Vite |
+| Styling | Tailwind CSS v4, custom glassmorphism/dark design system |
+| Animation | Framer Motion |
+| UI primitives | Radix UI (via `radix-ui`), shadcn-style components |
+| Data fetching | TanStack Query |
+| Forms & validation | React Hook Form + Zod |
+| Client state | Zustand |
+| Charts | Recharts |
+| Backend | Supabase (Postgres, Auth, Realtime) |
+| AI | OpenAI SDK (`gpt-4o-mini`) |
+| Linting | oxlint |
+
+## Getting Started
+
+### Prerequisites
+- Node.js 18+
+- A [Supabase](https://supabase.com) project (Postgres schema: `accounts`, `transactions`, both scoped by `user_id` with RLS)
+- An [OpenAI](https://platform.openai.com) API key (optional — Smart Input requires it; AI insights and chat gracefully degrade without it)
+
+### Installation
+
+```bash
+npm install
+cp .env.example .env.local
+```
+
+Fill in `.env.local`:
+
+| Variable | Description |
+|---|---|
+| `VITE_SUPABASE_URL` | Your Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | Your Supabase anon/public key |
+| `VITE_OPENAI_API_KEY` | OpenAI API key for Smart Input, AI insights, and the chat assistant |
+
+> **Note:** OpenAI is currently called directly from the browser (`dangerouslyAllowBrowser`) as an MVP tradeoff — this exposes the key to anyone inspecting network traffic. Move it behind a server/edge function before shipping past prototype stage.
+
+### Run
+
+```bash
+npm run dev       # start the dev server
+npm run build     # type-check and build for production
+npm run preview   # preview the production build locally
+npm run lint       # run oxlint
+```
+
+## Project Structure
+
+```
+src/
+├── components/       # Shared UI primitives, layout (Sidebar, Topbar, AppLayout)
+├── config/           # Supabase client setup
+├── features/
+│   ├── accounts/     # Accounts, credit cards, invoice payments
+│   ├── assistant/     # AI chat assistant (store, streaming service, UI)
+│   ├── auth/          # Auth store, listener, provider
+│   ├── dashboard/     # Metrics, charts, AI insights, financial snapshot engine
+│   ├── settings/      # UI preferences
+│   └── transactions/  # Transactions, Smart Input, recurrence projection engine
+├── hooks/             # Cross-cutting hooks (Supabase realtime sync)
+├── lib/               # Formatting, date, and OpenAI client utilities
+└── routes/            # Page-level route components + router config
+```
+
+## License
+
+Private project — all rights reserved.

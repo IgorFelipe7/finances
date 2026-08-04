@@ -11,7 +11,11 @@ export interface CategorySlice {
 
 const MAX_SLICES = 5
 
-/** Expense-by-category split for the selected month (confirmed + projected), folded into "Outros" past the top 5. */
+/**
+ * Expense-by-category split for the selected month — paid transactions, projected instances,
+ * and known fixed/installment charges still pending (a committed expense, not speculation) —
+ * folded into "Outros" past the top 5.
+ */
 export function useCategoryBreakdown(): { slices: CategorySlice[]; total: number } {
   const { data: transactions = [] } = useTransactions()
   const selectedMonth = useTimeTravelStore((state) => state.selectedMonth)
@@ -26,7 +30,8 @@ export function useCategoryBreakdown(): { slices: CategorySlice[]; total: number
 
     for (const transaction of expanded) {
       if (transaction.transaction_type !== 'expense') continue
-      if (!transaction.is_paid && !transaction.is_projected) continue
+      const isRecurringLike = transaction.recurrence === 'fixed' || transaction.installments_total > 1
+      if (!transaction.is_paid && !transaction.is_projected && !isRecurringLike) continue
       const date = new Date(`${transaction.date}T00:00:00`).getTime()
       if (date < periodStartTime || date > periodEndTime) continue
 

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { MoreVertical, Pencil, ReceiptText, Trash2 } from 'lucide-react'
+import { Link2, MoreVertical, Pencil, ReceiptText, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import {
   AlertDialog,
@@ -68,7 +68,12 @@ export function AccountCard({ account, balance, index }: AccountCardProps) {
             <meta.icon className="size-5" style={{ color: account.color }} />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-foreground">{account.name}</p>
+            <p className="flex items-center gap-1 truncate text-sm font-medium text-foreground">
+              {account.name}
+              {account.bank_connection_id && (
+                <Link2 className="size-3 shrink-0 text-primary" aria-label="Sincronizado via Open Finance" />
+              )}
+            </p>
             <p className="text-xs text-zinc-400">{meta.label}</p>
           </div>
 

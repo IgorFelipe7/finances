@@ -14,6 +14,7 @@ export const accountSchema = z.object({
   created_at: z.string(),
   statement_closing_day: z.coerce.number().int().min(1).max(31).nullable().default(null),
   statement_due_day: z.coerce.number().int().min(1).max(31).nullable().default(null),
+  bank_connection_id: z.string().uuid().nullable().optional(),
 })
 
 export type Account = z.infer<typeof accountSchema>

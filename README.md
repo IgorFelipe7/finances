@@ -33,6 +33,9 @@ Changes made on one device propagate to others live via Supabase Realtime subscr
 ### Installable App & Push Notifications
 Installable as a PWA on desktop and mobile, with an offline-capable precached shell. Opt in from Settings to get a push notification when a fixed expense or installment is due.
 
+### Open Finance (Bank Sync)
+Connect a real bank account via Pluggy and let the app pull in accounts and transactions on its own instead of typing them by hand — re-syncable on demand, with imports deduplicated by the provider's transaction id.
+
 ## Tech Stack
 
 | Layer | Choice |
@@ -48,6 +51,7 @@ Installable as a PWA on desktop and mobile, with an offline-capable precached sh
 | Backend | Supabase (Postgres, Auth, Realtime, Edge Functions) |
 | AI | OpenAI (`gpt-4o-mini`), proxied through a Supabase Edge Function |
 | PWA / Push | `vite-plugin-pwa` (injectManifest), Web Push + VAPID |
+| Open Finance | Pluggy, proxied through a Supabase Edge Function |
 | Linting | oxlint |
 
 ## Getting Started
@@ -86,7 +90,7 @@ Without this, every AI feature falls back gracefully (deterministic insights, an
 
 ### Database migrations
 
-SQL files in `supabase/migrations/` add tables beyond the base `accounts`/`transactions` schema (e.g. `goals` for named savings targets, `budgets` for per-category limits, `push_subscriptions` for Web Push). Apply them via `npx supabase db push` once linked, or paste them into the Supabase SQL Editor directly — either way, features depending on a migration you haven't run just show an empty state rather than breaking.
+SQL files in `supabase/migrations/` add tables beyond the base `accounts`/`transactions` schema (e.g. `goals` for named savings targets, `budgets` for per-category limits, `push_subscriptions` for Web Push, `bank_connections` for Open Finance). Apply them via `npx supabase db push` once linked, or paste them into the Supabase SQL Editor directly — either way, features depending on a migration you haven't run just show an empty state rather than breaking.
 
 ### Push notifications (optional)
 
@@ -124,6 +128,20 @@ The app is an installable PWA (manifest + service worker via `vite-plugin-pwa`, 
    ```
 
 Skipping all three still leaves you with a fully working installable PWA — the notification toggle in Settings just stays off.
+
+### Open Finance (optional)
+
+The "Conectar banco" button in Contas lets a user link a real bank via [Pluggy](https://pluggy.ai) and import its accounts + transactions automatically (re-syncable, dedup'd by the provider's own ids). The Pluggy API credentials never touch the browser — the client only ever gets a short-lived connect token from `pluggy-proxy`.
+
+1. Create a Pluggy account and grab your **Client ID** and **Client Secret** from the dashboard (a sandbox app is free and enough to try the flow end-to-end with test banks).
+2. Deploy the proxy function with those as secrets:
+   ```bash
+   npx supabase secrets set PLUGGY_CLIENT_ID=<client-id> PLUGGY_CLIENT_SECRET=<client-secret>
+   npx supabase functions deploy pluggy-proxy
+   ```
+3. Run migration `0004_bank_connections.sql` (see "Database migrations" above) if you haven't already.
+
+Skipping this leaves "Conectar banco" showing a clear error toast instead of a working flow — nothing else in the app depends on it.
 
 ### Run
 

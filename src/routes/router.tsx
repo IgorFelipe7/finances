@@ -6,6 +6,7 @@ import { DashboardPage } from '@/routes/DashboardPage'
 import { AccountsPage } from '@/routes/AccountsPage'
 import { TransactionsPage } from '@/routes/TransactionsPage'
 import { FixedExpensesPage } from '@/routes/FixedExpensesPage'
+import { EconomiaPage } from '@/routes/EconomiaPage'
 import { SettingsPage } from '@/routes/SettingsPage'
 
 export const router = createBrowserRouter([
@@ -42,6 +43,14 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <FixedExpensesPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/economia',
+    element: (
+      <ProtectedRoute>
+        <EconomiaPage />
       </ProtectedRoute>
     ),
   },

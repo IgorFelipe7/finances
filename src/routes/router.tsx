@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { ProtectedRoute } from '@/routes/ProtectedRoute'
+import { PublicRoute } from '@/routes/PublicRoute'
 import { LoginPage } from '@/routes/LoginPage'
 import { DashboardPage } from '@/routes/DashboardPage'
 import { AccountsPage } from '@/routes/AccountsPage'
@@ -14,7 +15,11 @@ export const router = createBrowserRouter([
   },
   {
     path: '/login',
-    element: <LoginPage />,
+    element: (
+      <PublicRoute>
+        <LoginPage />
+      </PublicRoute>
+    ),
   },
   {
     path: '/dashboard',

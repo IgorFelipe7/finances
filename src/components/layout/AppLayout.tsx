@@ -4,6 +4,7 @@ import { BottomNav } from '@/components/layout/BottomNav'
 import { Topbar } from '@/components/layout/Topbar'
 import { AssistantLauncher } from '@/features/assistant/components/AssistantLauncher'
 import { AssistantPanel } from '@/features/assistant/components/AssistantPanel'
+import { CommandPalette } from '@/features/command-palette/components/CommandPalette'
 import { OnboardingWizard } from '@/features/onboarding/components/OnboardingWizard'
 
 interface AppLayoutProps {
@@ -25,6 +26,7 @@ export function AppLayout({ title, children }: AppLayoutProps) {
       <AssistantLauncher />
       <AssistantPanel />
       <OnboardingWizard />
+      <CommandPalette />
     </div>
   )
 }

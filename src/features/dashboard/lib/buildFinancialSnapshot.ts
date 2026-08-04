@@ -1,3 +1,4 @@
+import { computeCreditCardInvoices } from '@/features/accounts/lib/creditCard'
 import type { Account } from '@/features/accounts/schemas/account.schema'
 import { withProjections } from '@/features/transactions/lib/projectTransactions'
 import type { Transaction } from '@/features/transactions/schemas/transaction.schema'
@@ -41,6 +42,9 @@ export interface FinancialSnapshot {
   knownUpcomingIncome: number
   freeCashThisMonth: number
   safeToSpendPerDay: number
+
+  totalSaved: number
+  recommendedSavings: number
 }
 
 /**
@@ -63,6 +67,10 @@ export function buildFinancialSnapshot(
 
   const balances = new Map<string, number>()
   for (const account of accounts) balances.set(account.id, account.initial_balance)
+
+  // Credit card purchases are never individually "due" — only the aggregated statement is,
+  // on its due date. Their own dates are excluded from the per-transaction charge lists below.
+  const creditCardIds = new Set(accounts.filter((a) => a.type === 'credit_card').map((a) => a.id))
 
   let confirmedIncome = 0
   let confirmedExpenses = 0
@@ -100,20 +108,53 @@ export function buildFinancialSnapshot(
     if (t.transaction_type === 'income') knownUpcomingIncome += t.amount
     else knownUpcomingExpenses += t.amount
 
-    const entry: SnapshotCharge = { title: t.title, amount: t.amount, date: t.date, type: t.transaction_type }
-    if (d.getTime() < todayStart) overdueCharges.push(entry)
-    else if (t.date === todayIso) dueTodayCharges.push(entry)
-    else upcomingCharges.push(entry)
+    if (!creditCardIds.has(t.account_id)) {
+      const entry: SnapshotCharge = { title: t.title, amount: t.amount, date: t.date, type: t.transaction_type }
+      if (d.getTime() < todayStart) overdueCharges.push(entry)
+      else if (t.date === todayIso) dueTodayCharges.push(entry)
+      else upcomingCharges.push(entry)
+    }
 
     if (t.installments_total > 1 && t.installment_current === t.installments_total) {
       endingInstallments.push({ title: t.title, amount: t.amount, installmentsTotal: t.installments_total })
     }
   }
 
+  // Aggregated invoice per card — this is what actually has a deadline, not each individual swipe.
+  for (const account of accounts) {
+    if (account.type !== 'credit_card' || !account.statement_closing_day || !account.statement_due_day) continue
+
+    const invoices = computeCreditCardInvoices(
+      account.id,
+      account.statement_closing_day,
+      account.statement_due_day,
+      transactions,
+      referenceDate,
+    )
+    if (invoices.closed.amount <= 0) continue
+
+    const dueDate = invoices.closed.dueDate
+    const dueTime = dueDate.getTime()
+    const entry: SnapshotCharge = {
+      title: `Fatura ${account.name}`,
+      amount: invoices.closed.amount,
+      date: `${dueDate.getFullYear()}-${String(dueDate.getMonth() + 1).padStart(2, '0')}-${String(dueDate.getDate()).padStart(2, '0')}`,
+      type: 'expense',
+    }
+
+    if (dueTime < todayStart) overdueCharges.push(entry)
+    else if (dueTime === todayStart) dueTodayCharges.push(entry)
+    else if (dueTime <= periodEnd.getTime()) upcomingCharges.push(entry)
+  }
+
   const netWorth = accounts.reduce((total, account) => {
     const balance = balances.get(account.id) ?? account.initial_balance
     return total + (account.type === 'credit_card' ? -Math.abs(balance) : balance)
   }, 0)
+
+  const totalSaved = accounts
+    .filter((account) => account.type === 'savings')
+    .reduce((sum, account) => sum + (balances.get(account.id) ?? account.initial_balance), 0)
 
   const daysRemaining = Math.max(daysInMonth - dayOfMonth, 0)
   const projectedMonthExpenses = dayOfMonth > 0 ? (confirmedExpenses / dayOfMonth) * daysInMonth : confirmedExpenses
@@ -122,6 +163,8 @@ export function buildFinancialSnapshot(
 
   const freeCashThisMonth = confirmedIncome + knownUpcomingIncome - confirmedExpenses - knownUpcomingExpenses
   const safeToSpendPerDay = Math.max(freeCashThisMonth, 0) / Math.max(daysRemaining, 1)
+  // Suggest banking a slice of income, but never more than what's actually free this month.
+  const recommendedSavings = Math.min(confirmedIncome * 0.2, Math.max(freeCashThisMonth, 0))
 
   return {
     today: todayIso,
@@ -147,6 +190,8 @@ export function buildFinancialSnapshot(
     knownUpcomingIncome,
     freeCashThisMonth,
     safeToSpendPerDay,
+    totalSaved,
+    recommendedSavings,
   }
 }
 
@@ -156,6 +201,7 @@ export function snapshotToPromptFacts(snapshot: FinancialSnapshot): string {
 
   lines.push(`Hoje: ${snapshot.today} (${snapshot.monthLabel}, dia ${snapshot.dayOfMonth} de ${snapshot.daysInMonth}, faltam ${snapshot.daysRemaining} dias para o fim do mês).`)
   lines.push(`Patrimônio líquido atual: ${formatCurrency(snapshot.netWorth)}.`)
+  lines.push(`Total guardado (contas do tipo poupança): ${formatCurrency(snapshot.totalSaved)}.`)
 
   if (snapshot.accounts.length > 0) {
     lines.push('Contas:')
@@ -167,21 +213,22 @@ export function snapshotToPromptFacts(snapshot: FinancialSnapshot): string {
   lines.push(`Receitas confirmadas no mês: ${formatCurrency(snapshot.confirmedIncome)}.`)
   lines.push(`Despesas confirmadas no mês: ${formatCurrency(snapshot.confirmedExpenses)}.`)
   lines.push(`Projeção de despesa do mês no ritmo atual: ${formatCurrency(snapshot.projectedMonthExpenses)}${snapshot.overspendRisk ? ' (ACIMA da receita — risco de estourar o orçamento)' : ''}.`)
-  lines.push(`Contas fixas/parceladas que ainda vêm este mês: ${formatCurrency(snapshot.knownUpcomingExpenses)}. Receitas fixas que ainda entram: ${formatCurrency(snapshot.knownUpcomingIncome)}.`)
+  lines.push(`Contas fixas/parceladas/faturas que ainda vêm este mês: ${formatCurrency(snapshot.knownUpcomingExpenses)}. Receitas fixas que ainda entram: ${formatCurrency(snapshot.knownUpcomingIncome)}.`)
   lines.push(`Sobra livre estimada para o resto do mês: ${formatCurrency(snapshot.freeCashThisMonth)} (~${formatCurrency(snapshot.safeToSpendPerDay)}/dia nos ${snapshot.daysRemaining} dias restantes).`)
+  lines.push(`Sugestão de quanto guardar este mês: ${formatCurrency(snapshot.recommendedSavings)} (baseado em receita e sobra livre, nunca mais do que o que realmente sobra).`)
 
   if (snapshot.overdueCharges.length > 0) {
-    lines.push('Contas fixas/parceladas ATRASADAS (data já passou, não marcadas como pagas):')
+    lines.push('Contas/faturas ATRASADAS (data já passou, não pagas):')
     for (const c of snapshot.overdueCharges) lines.push(`- ${c.title}: ${formatCurrency(c.amount)} (venceu em ${c.date})`)
   }
 
   if (snapshot.dueTodayCharges.length > 0) {
-    lines.push('Contas que vencem HOJE:')
+    lines.push('Contas/faturas que vencem HOJE:')
     for (const c of snapshot.dueTodayCharges) lines.push(`- ${c.title}: ${formatCurrency(c.amount)}`)
   }
 
   if (snapshot.upcomingCharges.length > 0) {
-    lines.push('Próximas contas fixas/parceladas este mês:')
+    lines.push('Próximas contas/faturas este mês:')
     for (const c of snapshot.upcomingCharges.slice(0, 8)) lines.push(`- ${c.title}: ${formatCurrency(c.amount)} em ${c.date}`)
   }
 

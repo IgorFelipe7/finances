@@ -63,14 +63,17 @@ export function useAccountBalances() {
         applyDelta(projectedBalances, transaction.destination_account_id, destinationDelta)
       }
 
-      if (!transaction.is_paid) continue
-
-      applyDelta(balances, transaction.account_id, originDelta)
-      if (transaction.destination_account_id) {
-        applyDelta(balances, transaction.destination_account_id, destinationDelta)
+      if (transaction.is_paid) {
+        applyDelta(balances, transaction.account_id, originDelta)
+        if (transaction.destination_account_id) {
+          applyDelta(balances, transaction.destination_account_id, destinationDelta)
+        }
       }
 
-      if (transactionTime >= periodStartTime) {
+      // "Receitas vs Despesas do mês" also counts known fixed/installment charges for this
+      // month even before they're marked paid — they're a real commitment, not speculation.
+      const isRecurringLike = transaction.recurrence === 'fixed' || transaction.installments_total > 1
+      if ((transaction.is_paid || isRecurringLike) && transactionTime >= periodStartTime) {
         if (transaction.transaction_type === 'income') monthlyIncome += transaction.amount
         if (transaction.transaction_type === 'expense') monthlyExpenses += transaction.amount
       }

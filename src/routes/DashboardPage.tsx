@@ -3,6 +3,7 @@ import { CashFlowAreaChart } from '@/features/dashboard/components/CashFlowAreaC
 import { CategoryDonutChart } from '@/features/dashboard/components/CategoryDonutChart'
 import { InsightsPanel } from '@/features/dashboard/components/InsightsPanel'
 import { MetricsRibbon } from '@/features/dashboard/components/MetricsRibbon'
+import { NetWorthHistoryChart } from '@/features/dashboard/components/NetWorthHistoryChart'
 import { SavingsWidget } from '@/features/dashboard/components/SavingsWidget'
 import { SmartInput } from '@/features/transactions/components/SmartInput'
 import { TransactionFormDialog } from '@/features/transactions/components/TransactionFormDialog'
@@ -21,6 +22,8 @@ export function DashboardPage() {
         <InsightsPanel />
 
         <MetricsRibbon />
+
+        <NetWorthHistoryChart />
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div className="lg:col-span-2">

@@ -109,7 +109,7 @@ export function AssistantPanel() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 16, scale: 0.98 }}
           transition={{ type: 'spring', stiffness: 420, damping: 38 }}
-          className="glass-panel fixed inset-0 z-40 flex flex-col overflow-hidden sm:inset-auto sm:right-6 sm:bottom-24 sm:h-[600px] sm:w-[400px] sm:rounded-2xl"
+          className="fixed inset-0 z-40 flex flex-col overflow-hidden border border-white/10 bg-background shadow-2xl backdrop-blur-xl sm:inset-auto sm:right-6 sm:bottom-24 sm:h-[600px] sm:w-[400px] sm:rounded-2xl"
         >
           <div className="flex shrink-0 items-center gap-3 border-b border-white/10 px-4 py-3.5">
             <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-chart-5 shadow-lg shadow-primary/30">

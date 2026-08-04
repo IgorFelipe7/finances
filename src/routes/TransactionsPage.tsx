@@ -160,7 +160,7 @@ function TransactionRow({
                 type="button"
                 variant="ghost"
                 size="icon-sm"
-                className="shrink-0 text-zinc-500 opacity-0 transition-opacity group-hover:opacity-100 data-[state=open]:opacity-100"
+                className="shrink-0 text-zinc-500 transition-colors hover:text-foreground data-[state=open]:text-foreground"
                 aria-label="Opções da recorrência"
               >
                 <MoreVertical className="size-4" />
@@ -219,7 +219,7 @@ function TransactionRow({
           type="button"
           variant="ghost"
           size="icon-sm"
-          className="shrink-0 text-zinc-500 opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive disabled:pointer-events-none disabled:opacity-0"
+          className="shrink-0 text-zinc-500 transition-colors hover:text-destructive disabled:pointer-events-none disabled:opacity-0"
           disabled={deactivate.isPending || transaction.is_projected}
           onClick={() => deactivate.mutate(transaction.id)}
           aria-label="Remover transação"

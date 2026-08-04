@@ -78,7 +78,7 @@ export function AccountCard({ account, balance, index }: AccountCardProps) {
                 type="button"
                 variant="ghost"
                 size="icon-sm"
-                className="shrink-0 text-zinc-500 opacity-0 transition-opacity group-hover:opacity-100 data-[state=open]:opacity-100"
+                className="shrink-0 text-zinc-500 transition-colors hover:text-foreground data-[state=open]:text-foreground"
                 aria-label="Opções da conta"
               >
                 <MoreVertical className="size-4" />

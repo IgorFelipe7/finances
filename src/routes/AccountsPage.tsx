@@ -4,6 +4,7 @@ import { AccountCard } from '@/features/accounts/components/AccountCard'
 import { AccountFormDialog } from '@/features/accounts/components/AccountFormDialog'
 import { useAccountBalances } from '@/features/accounts/hooks/useAccountBalances'
 import { useAccounts } from '@/features/accounts/hooks/useAccounts'
+import { BankConnectionsPanel } from '@/features/bank-sync/components/BankConnectionsPanel'
 import { formatCurrency } from '@/lib/currency'
 
 export function AccountsPage() {
@@ -20,6 +21,8 @@ export function AccountsPage() {
           </div>
           <AccountFormDialog />
         </div>
+
+        <BankConnectionsPanel />
 
         {isLoading ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

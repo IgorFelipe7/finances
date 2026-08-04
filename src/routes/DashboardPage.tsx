@@ -1,6 +1,7 @@
 import { ChevronRight, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
+import { BudgetsPanel } from '@/features/budgets/components/BudgetsPanel'
 import { CashFlowAreaChart } from '@/features/dashboard/components/CashFlowAreaChart'
 import { CategoryDonutChart } from '@/features/dashboard/components/CategoryDonutChart'
 import { InsightsPanel } from '@/features/dashboard/components/InsightsPanel'
@@ -36,6 +37,8 @@ export function DashboardPage() {
             <SavingsWidget />
           </div>
         </div>
+
+        <BudgetsPanel />
 
         <Link
           to="/retrospectiva"

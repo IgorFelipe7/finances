@@ -1,6 +1,7 @@
-import { LogOut, User } from 'lucide-react'
+import { LogOut, Search, User } from 'lucide-react'
 import { supabase } from '@/config/supabase'
 import { useAuthStore } from '@/features/auth/store/useAuthStore'
+import { useCommandPaletteStore } from '@/features/command-palette/store/useCommandPaletteStore'
 import { useTimeTravelStore } from '@/features/dashboard/store/useTimeTravelStore'
 import { generateMonthOptions } from '@/lib/date'
 import { Button } from '@/components/ui/button'
@@ -28,6 +29,7 @@ const MONTH_OPTIONS = generateMonthOptions()
 
 export function Topbar({ title }: TopbarProps) {
   const user = useAuthStore((state) => state.user)
+  const openCommandPalette = useCommandPaletteStore((state) => state.open)
   const selectedMonth = useTimeTravelStore((state) => state.selectedMonth)
   const selectedYear = useTimeTravelStore((state) => state.selectedYear)
   const setSelectedPeriod = useTimeTravelStore((state) => state.setSelectedPeriod)
@@ -44,6 +46,27 @@ export function Topbar({ title }: TopbarProps) {
       <h1 className="text-lg font-semibold text-foreground">{title}</h1>
 
       <div className="flex items-center gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          className="hidden gap-2 text-zinc-400 sm:flex"
+          onClick={openCommandPalette}
+        >
+          <Search className="size-4" />
+          Buscar
+          <kbd className="rounded border border-white/10 px-1.5 py-0.5 text-[10px] text-zinc-500">Ctrl K</kbd>
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="sm:hidden"
+          onClick={openCommandPalette}
+          aria-label="Buscar"
+        >
+          <Search className="size-4" />
+        </Button>
+
         <Select value={selectedValue} onValueChange={handlePeriodChange}>
           <SelectTrigger className="w-40">
             <SelectValue />

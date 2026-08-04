@@ -1,4 +1,4 @@
-import { LogOut, Mail, Sparkles } from 'lucide-react'
+import { Bell, LogOut, Mail, Sparkles } from 'lucide-react'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -6,7 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Switch } from '@/components/ui/switch'
 import { supabase } from '@/config/supabase'
 import { useAuthStore } from '@/features/auth/store/useAuthStore'
+import {
+  useDisablePushNotifications,
+  useEnablePushNotifications,
+  usePushSubscriptionStatus,
+} from '@/features/settings/hooks/usePushSubscription'
 import { useUIPreferencesStore } from '@/features/settings/store/useUIPreferencesStore'
+import { isPushSupported } from '@/lib/pushNotifications'
 
 function initialsFor(email: string) {
   return email.slice(0, 2).toUpperCase()
@@ -20,8 +26,17 @@ export function SettingsPage() {
   const user = useAuthStore((state) => state.user)
   const reduceMotion = useUIPreferencesStore((state) => state.reduceMotion)
   const setReduceMotion = useUIPreferencesStore((state) => state.setReduceMotion)
+  const { data: pushEnabled = false, isLoading: pushStatusLoading } = usePushSubscriptionStatus()
+  const enablePush = useEnablePushNotifications()
+  const disablePush = useDisablePushNotifications()
+  const pushSupported = isPushSupported()
 
   const email = user?.email ?? ''
+
+  function handlePushToggle(checked: boolean) {
+    if (checked) enablePush.mutate()
+    else disablePush.mutate()
+  }
 
   return (
     <AppLayout title="Configurações">
@@ -68,6 +83,25 @@ export function SettingsPage() {
                 </p>
               </div>
               <Switch checked={reduceMotion} onCheckedChange={setReduceMotion} />
+            </div>
+
+            <div className="mt-3 flex items-center justify-between rounded-lg border border-white/10 px-3 py-2.5">
+              <div className="flex items-start gap-2">
+                <Bell className="mt-0.5 size-4 shrink-0 text-zinc-400" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Notificações de contas</p>
+                  <p className="text-xs text-muted-foreground">
+                    {pushSupported
+                      ? 'Receba um aviso quando uma conta fixa ou parcela vencer hoje.'
+                      : 'Seu navegador não suporta notificações push.'}
+                  </p>
+                </div>
+              </div>
+              <Switch
+                checked={pushEnabled}
+                onCheckedChange={handlePushToggle}
+                disabled={!pushSupported || pushStatusLoading || enablePush.isPending || disablePush.isPending}
+              />
             </div>
           </CardContent>
         </Card>

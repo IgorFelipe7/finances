@@ -30,6 +30,9 @@ Full CRUD with income/expense/transfer types, installment plans (auto-projected 
 ### Realtime Sync
 Changes made on one device propagate to others live via Supabase Realtime subscriptions on `transactions` and `accounts`.
 
+### Installable App & Push Notifications
+Installable as a PWA on desktop and mobile, with an offline-capable precached shell. Opt in from Settings to get a push notification when a fixed expense or installment is due.
+
 ## Tech Stack
 
 | Layer | Choice |
@@ -44,6 +47,7 @@ Changes made on one device propagate to others live via Supabase Realtime subscr
 | Charts | Recharts |
 | Backend | Supabase (Postgres, Auth, Realtime, Edge Functions) |
 | AI | OpenAI (`gpt-4o-mini`), proxied through a Supabase Edge Function |
+| PWA / Push | `vite-plugin-pwa` (injectManifest), Web Push + VAPID |
 | Linting | oxlint |
 
 ## Getting Started
@@ -82,7 +86,44 @@ Without this, every AI feature falls back gracefully (deterministic insights, an
 
 ### Database migrations
 
-SQL files in `supabase/migrations/` add tables beyond the base `accounts`/`transactions` schema (e.g. `goals` for named savings targets). Apply them via `npx supabase db push` once linked, or paste them into the Supabase SQL Editor directly — either way, features depending on a migration you haven't run just show an empty state rather than breaking.
+SQL files in `supabase/migrations/` add tables beyond the base `accounts`/`transactions` schema (e.g. `goals` for named savings targets, `budgets` for per-category limits, `push_subscriptions` for Web Push). Apply them via `npx supabase db push` once linked, or paste them into the Supabase SQL Editor directly — either way, features depending on a migration you haven't run just show an empty state rather than breaking.
+
+### Push notifications (optional)
+
+The app is an installable PWA (manifest + service worker via `vite-plugin-pwa`, `injectManifest` strategy so the worker can also handle push events — see `src/sw.ts`). The "Notificações de contas" toggle in Settings sends a push when a fixed/installment expense is due today. This is the most involved piece to set up — three parts:
+
+1. **Generate a VAPID keypair** (one-time, do this once and reuse it forever):
+   ```bash
+   npx web-push generate-vapid-keys
+   ```
+   Put the public key in `.env.local` as `VITE_VAPID_PUBLIC_KEY` (and in Vercel's env vars for prod).
+
+2. **Deploy the sender function and its secrets:**
+   ```bash
+   npx supabase secrets set VAPID_PUBLIC_KEY=<public> VAPID_PRIVATE_KEY=<private>
+   npx supabase functions deploy send-bill-reminders
+   ```
+   `send-bill-reminders` uses the service role key (already available to every Edge Function as `SUPABASE_SERVICE_ROLE_KEY`) to read across all users — it's protected by requiring that exact key as its own bearer token, so only your cron job can trigger it.
+
+3. **Schedule it to run daily**, via `pg_cron` + `pg_net` (run once in the SQL Editor — adjust the cron time for your timezone; the example below is 08:00 BRT / 11:00 UTC):
+   ```sql
+   create extension if not exists pg_cron with schema extensions;
+   create extension if not exists pg_net with schema extensions;
+
+   select cron.schedule(
+     'send-bill-reminders-daily',
+     '0 11 * * *',
+     $$
+     select net.http_post(
+       url := 'https://<your-project-ref>.supabase.co/functions/v1/send-bill-reminders',
+       headers := jsonb_build_object('Authorization', 'Bearer <your-service-role-key>', 'Content-Type', 'application/json'),
+       body := '{}'::jsonb
+     );
+     $$
+   );
+   ```
+
+Skipping all three still leaves you with a fully working installable PWA — the notification toggle in Settings just stays off.
 
 ### Run
 

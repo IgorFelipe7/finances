@@ -80,12 +80,17 @@ npx supabase functions deploy openai-proxy
 
 Without this, every AI feature falls back gracefully (deterministic insights, an error toast on Smart Input/chat) rather than breaking the app.
 
+### Database migrations
+
+SQL files in `supabase/migrations/` add tables beyond the base `accounts`/`transactions` schema (e.g. `goals` for named savings targets). Apply them via `npx supabase db push` once linked, or paste them into the Supabase SQL Editor directly — either way, features depending on a migration you haven't run just show an empty state rather than breaking.
+
 ### Run
 
 ```bash
 npm run dev       # start the dev server
 npm run build     # type-check and build for production
 npm run preview   # preview the production build locally
+npm run test       # run the Vitest suite
 npm run lint       # run oxlint
 ```
 

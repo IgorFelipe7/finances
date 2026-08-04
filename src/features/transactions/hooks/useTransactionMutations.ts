@@ -155,22 +155,33 @@ export function useDeactivateTransaction() {
   })
 }
 
+export interface StopRecurrenceInput {
+  id: string
+  recurrence: TransactionRecurrence
+  installments_total: number
+  installment_current: number
+}
+
 /**
- * Stops a `fixed` transaction from replicating into future months. Flips the anchor
- * row back to `variable` rather than deleting it, so its own history stays intact —
- * only the projection engine (`withProjections`) reads `recurrence` going forward.
+ * Stops a `fixed` or installment transaction from replicating into future months, without
+ * touching its own history. `fixed` recurrence is controlled by the `recurrence` field, so it
+ * just flips back to `variable`; installments are controlled by `installments_total` instead
+ * (recurrence stays `variable` the whole time), so stopping one caps the total at whichever
+ * installment this row represents — anything after that stops projecting.
  */
 export function useCancelRecurrence() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from('transactions').update({ recurrence: 'variable' }).eq('id', id)
+    mutationFn: async (input: StopRecurrenceInput) => {
+      const update =
+        input.recurrence === 'fixed' ? { recurrence: 'variable' as const } : { installments_total: input.installment_current }
+      const { error } = await supabase.from('transactions').update(update).eq('id', input.id)
       if (error) throw error
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] })
-      toast.success('Recorrência cancelada. Os próximos meses não terão mais essa despesa fixa.')
+      toast.success('Recorrência cancelada. Os próximos meses não terão mais essa despesa.')
     },
     onError: (error) => {
       toast.error(error.message || 'Não foi possível cancelar a recorrência.')

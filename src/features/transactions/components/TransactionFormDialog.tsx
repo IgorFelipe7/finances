@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useForm } from 'react-hook-form'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -32,6 +32,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAccounts } from '@/features/accounts/hooks/useAccounts'
 import { TRANSACTION_CATEGORY_SUGGESTIONS, TRANSACTION_TYPE_META } from '@/features/transactions/constants'
 import { useCreateTransaction } from '@/features/transactions/hooks/useTransactionMutations'
+import { useTransactions } from '@/features/transactions/hooks/useTransactions'
 import {
   transactionFormSchema,
   type RepeatMode,
@@ -47,32 +48,64 @@ const REPEAT_MODE_OPTIONS: { value: RepeatMode; label: string }[] = [
 interface TransactionFormDialogProps {
   trigger?: ReactNode
   defaultRepeatMode?: RepeatMode
+  /** Pre-fills the form — e.g. from an AI-parsed Smart Input result — for the user to review before saving. */
+  initialValues?: Partial<TransactionFormInput>
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10)
 }
 
-export function TransactionFormDialog({ trigger, defaultRepeatMode = 'none' }: TransactionFormDialogProps) {
-  const [open, setOpen] = useState(false)
+function buildDefaultValues(
+  defaultRepeatMode: RepeatMode,
+  initialValues?: Partial<TransactionFormInput>,
+): TransactionFormInput {
+  return {
+    transaction_type: 'expense',
+    title: '',
+    amount: 0,
+    account_id: '',
+    destination_account_id: null,
+    category: null,
+    date: todayIso(),
+    is_paid: true,
+    repeat_mode: defaultRepeatMode,
+    installments_total: 2,
+    ...initialValues,
+  }
+}
+
+export function TransactionFormDialog({
+  trigger,
+  defaultRepeatMode = 'none',
+  initialValues,
+  open: openProp,
+  onOpenChange,
+}: TransactionFormDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = openProp ?? internalOpen
+  const setOpen = onOpenChange ?? setInternalOpen
   const { data: accounts = [] } = useAccounts()
+  const { data: transactions = [] } = useTransactions()
   const createTransaction = useCreateTransaction()
+
+  const categorySuggestions = Array.from(
+    new Set([...transactions.map((t) => t.category).filter((c): c is string => !!c), ...TRANSACTION_CATEGORY_SUGGESTIONS]),
+  )
 
   const form = useForm<TransactionFormInput>({
     resolver: zodResolver(transactionFormSchema),
-    defaultValues: {
-      transaction_type: 'expense',
-      title: '',
-      amount: 0,
-      account_id: '',
-      destination_account_id: null,
-      category: null,
-      date: todayIso(),
-      is_paid: true,
-      repeat_mode: defaultRepeatMode,
-      installments_total: 2,
-    },
+    defaultValues: buildDefaultValues(defaultRepeatMode, initialValues),
   })
+
+  useEffect(() => {
+    if (open) form.reset(buildDefaultValues(defaultRepeatMode, initialValues))
+    // Reset only on the open transition — initialValues/defaultRepeatMode are fresh objects
+    // from the caller on every render, and re-running this while already open would wipe edits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
 
   const transactionType = form.watch('transaction_type')
   const originAccountId = form.watch('account_id')
@@ -112,18 +145,24 @@ export function TransactionFormDialog({ trigger, defaultRepeatMode = 'none' }: T
         if (!next) form.reset()
       }}
     >
-      <DialogTrigger asChild>
-        {trigger ?? (
-          <Button className="gap-1.5">
-            <Plus className="size-4" />
-            Nova Transação
-          </Button>
-        )}
-      </DialogTrigger>
+      {trigger !== null && (
+        <DialogTrigger asChild>
+          {trigger ?? (
+            <Button className="gap-1.5">
+              <Plus className="size-4" />
+              Nova Transação
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Nova transação</DialogTitle>
-          <DialogDescription>Registre manualmente uma receita, despesa ou transferência.</DialogDescription>
+          <DialogTitle>{initialValues ? 'Confira antes de salvar' : 'Nova transação'}</DialogTitle>
+          <DialogDescription>
+            {initialValues
+              ? 'A IA já preencheu os campos abaixo a partir do que você digitou — ajuste o que quiser antes de salvar.'
+              : 'Registre manualmente uma receita, despesa ou transferência.'}
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -287,7 +326,7 @@ export function TransactionFormDialog({ trigger, defaultRepeatMode = 'none' }: T
                     />
                   </FormControl>
                   <datalist id="category-suggestions">
-                    {TRANSACTION_CATEGORY_SUGGESTIONS.map((suggestion) => (
+                    {categorySuggestions.map((suggestion) => (
                       <option key={suggestion} value={suggestion} />
                     ))}
                   </datalist>

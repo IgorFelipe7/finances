@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
+import { PageLoader } from '@/components/PageLoader'
 import { useAuthStore } from '@/features/auth/store/useAuthStore'
 
 interface PublicRouteProps {
@@ -12,11 +13,7 @@ export function PublicRoute({ children }: PublicRouteProps) {
   const isInitialized = useAuthStore((state) => state.isInitialized)
 
   if (!isInitialized) {
-    return (
-      <div className="flex min-h-svh items-center justify-center bg-background text-muted-foreground">
-        Carregando...
-      </div>
-    )
+    return <PageLoader />
   }
 
   if (user) {

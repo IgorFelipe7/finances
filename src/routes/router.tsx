@@ -1,13 +1,23 @@
+import { lazy, Suspense, type ReactNode } from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { PageLoader } from '@/components/PageLoader'
 import { ProtectedRoute } from '@/routes/ProtectedRoute'
 import { PublicRoute } from '@/routes/PublicRoute'
-import { LoginPage } from '@/routes/LoginPage'
-import { DashboardPage } from '@/routes/DashboardPage'
-import { AccountsPage } from '@/routes/AccountsPage'
-import { TransactionsPage } from '@/routes/TransactionsPage'
-import { FixedExpensesPage } from '@/routes/FixedExpensesPage'
-import { EconomiaPage } from '@/routes/EconomiaPage'
-import { SettingsPage } from '@/routes/SettingsPage'
+
+const LoginPage = lazy(() => import('@/routes/LoginPage').then((m) => ({ default: m.LoginPage })))
+const DashboardPage = lazy(() => import('@/routes/DashboardPage').then((m) => ({ default: m.DashboardPage })))
+const AccountsPage = lazy(() => import('@/routes/AccountsPage').then((m) => ({ default: m.AccountsPage })))
+const TransactionsPage = lazy(() => import('@/routes/TransactionsPage').then((m) => ({ default: m.TransactionsPage })))
+const FixedExpensesPage = lazy(() =>
+  import('@/routes/FixedExpensesPage').then((m) => ({ default: m.FixedExpensesPage })),
+)
+const EconomiaPage = lazy(() => import('@/routes/EconomiaPage').then((m) => ({ default: m.EconomiaPage })))
+const SettingsPage = lazy(() => import('@/routes/SettingsPage').then((m) => ({ default: m.SettingsPage })))
+
+/** Each route's chunk loads on first visit — this is the Suspense boundary that shows while it fetches. */
+function lazyPage(element: ReactNode) {
+  return <Suspense fallback={<PageLoader />}>{element}</Suspense>
+}
 
 export const router = createBrowserRouter([
   {
@@ -18,56 +28,32 @@ export const router = createBrowserRouter([
     path: '/login',
     element: (
       <PublicRoute>
-        <LoginPage />
+        {lazyPage(<LoginPage />)}
       </PublicRoute>
     ),
   },
   {
     path: '/dashboard',
-    element: (
-      <ProtectedRoute>
-        <DashboardPage />
-      </ProtectedRoute>
-    ),
+    element: <ProtectedRoute>{lazyPage(<DashboardPage />)}</ProtectedRoute>,
   },
   {
     path: '/transactions',
-    element: (
-      <ProtectedRoute>
-        <TransactionsPage />
-      </ProtectedRoute>
-    ),
+    element: <ProtectedRoute>{lazyPage(<TransactionsPage />)}</ProtectedRoute>,
   },
   {
     path: '/fixed-expenses',
-    element: (
-      <ProtectedRoute>
-        <FixedExpensesPage />
-      </ProtectedRoute>
-    ),
+    element: <ProtectedRoute>{lazyPage(<FixedExpensesPage />)}</ProtectedRoute>,
   },
   {
     path: '/economia',
-    element: (
-      <ProtectedRoute>
-        <EconomiaPage />
-      </ProtectedRoute>
-    ),
+    element: <ProtectedRoute>{lazyPage(<EconomiaPage />)}</ProtectedRoute>,
   },
   {
     path: '/accounts',
-    element: (
-      <ProtectedRoute>
-        <AccountsPage />
-      </ProtectedRoute>
-    ),
+    element: <ProtectedRoute>{lazyPage(<AccountsPage />)}</ProtectedRoute>,
   },
   {
     path: '/settings',
-    element: (
-      <ProtectedRoute>
-        <SettingsPage />
-      </ProtectedRoute>
-    ),
+    element: <ProtectedRoute>{lazyPage(<SettingsPage />)}</ProtectedRoute>,
   },
 ])

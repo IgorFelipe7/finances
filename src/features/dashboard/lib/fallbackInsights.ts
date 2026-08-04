@@ -54,6 +54,14 @@ export function buildFallbackInsights(snapshot: FinancialSnapshot): Insight[] {
     })
   }
 
+  if (snapshot.recommendedSavings > 0) {
+    insights.push({
+      tone: 'success',
+      headline: 'Quanto guardar',
+      message: `Dá pra guardar cerca de ${formatCurrency(snapshot.recommendedSavings)} este mês sem comprometer as contas. Você já tem ${formatCurrency(snapshot.totalSaved)} guardado.`,
+    })
+  }
+
   if (insights.length === 0) {
     insights.push({
       tone: 'info',

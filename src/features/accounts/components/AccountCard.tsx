@@ -23,7 +23,8 @@ import { AccountFormDialog } from '@/features/accounts/components/AccountFormDia
 import { PayInvoiceDialog } from '@/features/accounts/components/PayInvoiceDialog'
 import { ACCOUNT_TYPE_META } from '@/features/accounts/constants'
 import { useDeleteAccount } from '@/features/accounts/hooks/useAccountMutations'
-import { formatDueDate, getNextDueDate } from '@/features/accounts/lib/creditCard'
+import { useCreditCardInvoices } from '@/features/accounts/hooks/useCreditCardInvoices'
+import { formatDueDate } from '@/features/accounts/lib/creditCard'
 import type { Account } from '@/features/accounts/schemas/account.schema'
 import { formatCurrency } from '@/lib/currency'
 import { cn } from '@/lib/utils'
@@ -43,7 +44,9 @@ export function AccountCard({ account, balance, index }: AccountCardProps) {
   const isCreditCard = account.type === 'credit_card'
   const displayBalance = isCreditCard ? -Math.abs(balance) : balance
   const isNegative = displayBalance < 0
-  const invoiceAmount = Math.abs(balance)
+  const invoices = useCreditCardInvoices(account)
+  // Falls back to the raw running balance only when the card has no cycle configured yet.
+  const dueInvoiceAmount = invoices ? invoices.closed.amount : Math.abs(balance)
 
   return (
     <motion.div
@@ -104,21 +107,40 @@ export function AccountCard({ account, balance, index }: AccountCardProps) {
               <div className="flex items-center justify-between text-xs text-zinc-400">
                 <span className="flex items-center gap-1.5">
                   <ReceiptText className="size-3.5" />
-                  Fatura atual
+                  {invoices ? 'Fatura a pagar' : 'Fatura atual'}
                 </span>
-                <span className="font-semibold text-foreground tabular-nums">{formatCurrency(invoiceAmount)}</span>
+                <span className="font-semibold text-foreground tabular-nums">
+                  {formatCurrency(dueInvoiceAmount)}
+                </span>
               </div>
-              {account.statement_due_day && (
-                <p className="text-xs text-zinc-400">
-                  Vence dia {formatDueDate(getNextDueDate(account.statement_due_day))}
-                  {account.statement_closing_day ? ` · fecha dia ${account.statement_closing_day}` : ''}
+
+              {invoices ? (
+                <>
+                  <p className="text-xs text-zinc-400">Vence dia {formatDueDate(invoices.closed.dueDate)}</p>
+                  {invoices.open.amount > 0 && (
+                    <p className="flex items-center justify-between text-xs text-zinc-500">
+                      <span>Próxima fatura (fecha dia {formatDueDate(invoices.open.closingDate)})</span>
+                      <span className="tabular-nums">{formatCurrency(invoices.open.amount)}</span>
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="text-xs text-zinc-500">
+                  Configure o dia de fechamento e vencimento para separar a fatura por ciclo.
                 </p>
               )}
+
               <PayInvoiceDialog
                 card={account}
-                invoiceAmount={invoiceAmount}
+                invoiceAmount={dueInvoiceAmount}
                 trigger={
-                  <Button type="button" size="sm" variant="secondary" className="w-full" disabled={invoiceAmount <= 0}>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    className="w-full"
+                    disabled={dueInvoiceAmount <= 0}
+                  >
                     Pagar Fatura
                   </Button>
                 }

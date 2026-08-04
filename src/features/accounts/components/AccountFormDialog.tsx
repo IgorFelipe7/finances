@@ -30,19 +30,25 @@ import {
 import { ColorPicker } from '@/features/accounts/components/ColorPicker'
 import { ACCOUNT_COLOR_PRESETS, ACCOUNT_TYPE_META } from '@/features/accounts/constants'
 import { useCreateAccount, useUpdateAccount } from '@/features/accounts/hooks/useAccountMutations'
-import { accountFormSchema, type Account, type AccountFormInput } from '@/features/accounts/schemas/account.schema'
+import {
+  accountFormSchema,
+  type Account,
+  type AccountFormInput,
+  type AccountType,
+} from '@/features/accounts/schemas/account.schema'
 
 interface AccountFormDialogProps {
   trigger?: ReactNode
   account?: Account
   open?: boolean
   onOpenChange?: (open: boolean) => void
+  defaultType?: AccountType
 }
 
-function defaultValuesFor(account?: Account): AccountFormInput {
+function defaultValuesFor(account?: Account, defaultType?: AccountType): AccountFormInput {
   return {
     name: account?.name ?? '',
-    type: account?.type ?? 'checking',
+    type: account?.type ?? defaultType ?? 'checking',
     initial_balance: account?.initial_balance ?? 0,
     color: account?.color ?? ACCOUNT_COLOR_PRESETS[0],
     statement_closing_day: account?.statement_closing_day ?? null,
@@ -50,7 +56,13 @@ function defaultValuesFor(account?: Account): AccountFormInput {
   }
 }
 
-export function AccountFormDialog({ trigger, account, open: openProp, onOpenChange }: AccountFormDialogProps) {
+export function AccountFormDialog({
+  trigger,
+  account,
+  open: openProp,
+  onOpenChange,
+  defaultType,
+}: AccountFormDialogProps) {
   const isEditing = !!account
   const [internalOpen, setInternalOpen] = useState(false)
   const open = openProp ?? internalOpen
@@ -62,12 +74,12 @@ export function AccountFormDialog({ trigger, account, open: openProp, onOpenChan
 
   const form = useForm<AccountFormInput>({
     resolver: zodResolver(accountFormSchema),
-    defaultValues: defaultValuesFor(account),
+    defaultValues: defaultValuesFor(account, defaultType),
   })
 
   useEffect(() => {
-    if (open) form.reset(defaultValuesFor(account))
-  }, [open, account, form])
+    if (open) form.reset(defaultValuesFor(account, defaultType))
+  }, [open, account, defaultType, form])
 
   const accountType = form.watch('type')
 

@@ -1,6 +1,6 @@
 import { snapshotToPromptFacts, type FinancialSnapshot } from '@/features/dashboard/lib/buildFinancialSnapshot'
 import type { ChatMessage } from '@/features/assistant/types'
-import { getOpenAIClient } from '@/lib/openai'
+import { streamOpenAI } from '@/lib/aiProxy'
 
 const MAX_HISTORY_MESSAGES = 12
 
@@ -27,21 +27,14 @@ export async function* streamAssistantReply(
   history: ChatMessage[],
   snapshot: FinancialSnapshot,
 ): AsyncGenerator<string> {
-  const openai = getOpenAIClient()
   const facts = snapshotToPromptFacts(snapshot)
   const trimmedHistory = history.slice(-MAX_HISTORY_MESSAGES)
 
-  const stream = await openai.chat.completions.create({
+  yield* streamOpenAI({
     model: 'gpt-4o-mini',
-    stream: true,
     messages: [
       { role: 'system', content: buildSystemPrompt(facts) },
-      ...trimmedHistory.map((message) => ({ role: message.role, content: message.content }) as const),
+      ...trimmedHistory.map((message) => ({ role: message.role, content: message.content })),
     ],
   })
-
-  for await (const chunk of stream) {
-    const delta = chunk.choices[0]?.delta?.content
-    if (delta) yield delta
-  }
 }

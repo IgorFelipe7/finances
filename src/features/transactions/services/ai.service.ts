@@ -1,6 +1,6 @@
 import type { Account } from '@/features/accounts/schemas/account.schema'
 import { TRANSACTION_CATEGORY_SUGGESTIONS } from '@/features/transactions/constants'
-import { getOpenAIClient } from '@/lib/openai'
+import { callOpenAI } from '@/lib/aiProxy'
 import {
   aiTransactionResultSchema,
   type AiTransactionResult,
@@ -58,9 +58,7 @@ export async function parseTransactionText(
   accounts: Account[],
   existingCategories: string[] = [],
 ): Promise<AiTransactionResult> {
-  const openai = getOpenAIClient()
-
-  const completion = await openai.chat.completions.create({
+  const completion = await callOpenAI({
     model: 'gpt-4o-mini',
     response_format: { type: 'json_object' },
     messages: [

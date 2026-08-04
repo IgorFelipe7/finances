@@ -3,7 +3,6 @@ import { useAuthStore } from '@/features/auth/store/useAuthStore'
 import { buildFallbackInsights } from '@/features/dashboard/lib/fallbackInsights'
 import { useFinancialSnapshot } from '@/features/dashboard/hooks/useFinancialSnapshot'
 import { generateInsights } from '@/features/dashboard/services/insights.service'
-import { hasOpenAIKey } from '@/lib/openai'
 
 export function useFinancialInsights() {
   const userId = useAuthStore((state) => state.user?.id)
@@ -26,7 +25,6 @@ export function useFinancialInsights() {
     enabled: !!userId && !snapshotLoading,
     staleTime: 1000 * 60 * 30,
     queryFn: async () => {
-      if (!hasOpenAIKey()) return buildFallbackInsights(snapshot)
       try {
         return await generateInsights(snapshot)
       } catch (error) {

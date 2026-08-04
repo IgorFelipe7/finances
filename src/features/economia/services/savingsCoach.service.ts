@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { snapshotToPromptFacts, type FinancialSnapshot } from '@/features/dashboard/lib/buildFinancialSnapshot'
-import { getOpenAIClient } from '@/lib/openai'
+import { callOpenAI } from '@/lib/aiProxy'
 
 const coachTipSchema = z.object({
   headline: z.string().min(1).max(60),
@@ -22,11 +22,10 @@ Regras muito importantes:
 - Responda APENAS com um JSON no formato: { "headline": string (até 6 palavras), "message": string }`
 
 export async function generateCoachTip(snapshot: FinancialSnapshot, topCategory: string | null): Promise<CoachTip> {
-  const openai = getOpenAIClient()
   const facts = snapshotToPromptFacts(snapshot)
   const extra = topCategory ? `\nCategoria de maior gasto este mês: ${topCategory}.` : ''
 
-  const completion = await openai.chat.completions.create({
+  const completion = await callOpenAI({
     model: 'gpt-4o-mini',
     response_format: { type: 'json_object' },
     messages: [

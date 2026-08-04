@@ -7,7 +7,6 @@ import { useFinancialSnapshot } from '@/features/dashboard/hooks/useFinancialSna
 import { streamAssistantReply } from '@/features/assistant/services/chat.service'
 import { useAssistantStore } from '@/features/assistant/store/useAssistantStore'
 import type { ChatMessage } from '@/features/assistant/types'
-import { hasOpenAIKey } from '@/lib/openai'
 import { cn } from '@/lib/utils'
 
 const SUGGESTED_PROMPTS = [
@@ -65,7 +64,6 @@ export function AssistantPanel() {
   const { snapshot } = useFinancialSnapshot()
   const [input, setInput] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
-  const keyConfigured = hasOpenAIKey()
 
   useEffect(() => {
     if (!scrollRef.current) return
@@ -74,7 +72,7 @@ export function AssistantPanel() {
 
   async function handleSend(rawText?: string) {
     const content = (rawText ?? input).trim()
-    if (!content || isStreaming || !keyConfigured) return
+    if (!content || isStreaming) return
 
     const priorMessages = useAssistantStore.getState().messages
     const userMessage: ChatMessage = { id: crypto.randomUUID(), role: 'user', content }
@@ -160,7 +158,6 @@ export function AssistantPanel() {
                       key={prompt}
                       type="button"
                       onClick={() => handleSend(prompt)}
-                      disabled={!keyConfigured}
                       className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-left text-xs text-zinc-300 transition-colors hover:border-primary/30 hover:bg-primary/10 hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
                     >
                       {prompt}
@@ -176,38 +173,31 @@ export function AssistantPanel() {
           </div>
 
           <div className="shrink-0 border-t border-white/10 p-3">
-            {!keyConfigured ? (
-              <p className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-center text-xs text-zinc-400">
-                Configure <code className="text-zinc-300">VITE_OPENAI_API_KEY</code> no seu .env para conversar com o
-                assistente.
-              </p>
-            ) : (
-              <div className="flex items-end gap-2">
-                <Textarea
-                  value={input}
-                  onChange={(event) => setInput(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' && !event.shiftKey) {
-                      event.preventDefault()
-                      handleSend()
-                    }
-                  }}
-                  placeholder="Ex: quanto posso gastar hoje?"
-                  disabled={isStreaming}
-                  className="max-h-28 min-h-10 flex-1 resize-none py-2"
-                  rows={1}
-                />
-                <Button
-                  type="button"
-                  size="icon"
-                  onClick={() => handleSend()}
-                  disabled={isStreaming || !input.trim()}
-                  aria-label="Enviar mensagem"
-                >
-                  <ArrowUp className="size-4" />
-                </Button>
-              </div>
-            )}
+            <div className="flex items-end gap-2">
+              <Textarea
+                value={input}
+                onChange={(event) => setInput(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault()
+                    handleSend()
+                  }
+                }}
+                placeholder="Ex: quanto posso gastar hoje?"
+                disabled={isStreaming}
+                className="max-h-28 min-h-10 flex-1 resize-none py-2"
+                rows={1}
+              />
+              <Button
+                type="button"
+                size="icon"
+                onClick={() => handleSend()}
+                disabled={isStreaming || !input.trim()}
+                aria-label="Enviar mensagem"
+              >
+                <ArrowUp className="size-4" />
+              </Button>
+            </div>
           </div>
         </motion.div>
       )}

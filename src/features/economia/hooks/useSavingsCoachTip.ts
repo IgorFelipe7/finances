@@ -4,7 +4,6 @@ import { useCategoryBreakdown } from '@/features/dashboard/hooks/useCategoryBrea
 import { useFinancialSnapshot } from '@/features/dashboard/hooks/useFinancialSnapshot'
 import { SAVINGS_TIPS } from '@/features/economia/data/savingsTips'
 import { generateCoachTip, type CoachTip } from '@/features/economia/services/savingsCoach.service'
-import { hasOpenAIKey } from '@/lib/openai'
 
 function fallbackTip(topCategory: string | null): CoachTip {
   const tip = SAVINGS_TIPS[Math.floor(Math.random() * SAVINGS_TIPS.length)]
@@ -35,7 +34,6 @@ export function useSavingsCoachTip() {
     enabled: !!userId && !snapshotLoading,
     staleTime: 1000 * 60 * 30,
     queryFn: async () => {
-      if (!hasOpenAIKey()) return fallbackTip(topCategory)
       try {
         return await generateCoachTip(snapshot, topCategory)
       } catch (error) {

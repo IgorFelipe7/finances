@@ -2,9 +2,11 @@ import { supabase } from '@/config/supabase'
 
 const FUNCTION_PATH = 'openai-proxy'
 
+export type ChatContentPart = { type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }
+
 interface ChatCompletionRequest {
   model: string
-  messages: { role: string; content: string }[]
+  messages: { role: string; content: string | ChatContentPart[] }[]
   response_format?: { type: 'json_object' }
 }
 

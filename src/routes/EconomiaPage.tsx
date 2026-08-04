@@ -1,12 +1,17 @@
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Check, PiggyBank, RotateCw, Shield, Sparkles, Target, X } from 'lucide-react'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Button } from '@/components/ui/button'
+import { useAccountBalances } from '@/features/accounts/hooks/useAccountBalances'
 import { useFinancialSnapshot } from '@/features/dashboard/hooks/useFinancialSnapshot'
 import { HealthScoreGauge } from '@/features/economia/components/HealthScoreGauge'
 import { TipsGrid } from '@/features/economia/components/TipsGrid'
 import { useSavingsCoachTip } from '@/features/economia/hooks/useSavingsCoachTip'
 import { computeHealthScore } from '@/features/economia/lib/financialHealthScore'
+import { GoalCard } from '@/features/goals/components/GoalCard'
+import { GoalFormDialog } from '@/features/goals/components/GoalFormDialog'
+import { useGoals } from '@/features/goals/hooks/useGoals'
 import { formatCurrency } from '@/lib/currency'
 import { cn } from '@/lib/utils'
 
@@ -30,6 +35,17 @@ function FactorRow({ label, detail, points, maxPoints, ok }: { label: string; de
 export function EconomiaPage() {
   const { snapshot, isLoading } = useFinancialSnapshot()
   const { tip, isLoading: tipLoading, isFetching: tipFetching, refetch: refetchTip } = useSavingsCoachTip()
+  const { data: goals = [] } = useGoals()
+  const { accountBalances } = useAccountBalances()
+
+  const balancesByAccountId = useMemo(
+    () => new Map(accountBalances.map(({ account, balance }) => [account.id, balance])),
+    [accountBalances],
+  )
+  const accountsById = useMemo(
+    () => new Map(accountBalances.map(({ account }) => [account.id, account])),
+    [accountBalances],
+  )
 
   if (isLoading) {
     return (
@@ -161,6 +177,44 @@ export function EconomiaPage() {
               — é um ponto de partida flexível, não uma lei fixa.
             </p>
           </motion.div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-sm font-medium text-foreground">Suas Metas</h2>
+            <GoalFormDialog trigger={<Button size="sm" variant="outline">Nova meta</Button>} />
+          </div>
+
+          {goals.length === 0 ? (
+            <div className="glass-panel flex flex-col items-center justify-center gap-3 rounded-xl p-10 text-center">
+              <span className="flex size-12 items-center justify-center rounded-full bg-primary/10">
+                <Target className="size-6 text-primary" />
+              </span>
+              <div>
+                <p className="text-sm font-medium text-foreground">Nenhuma meta ainda</p>
+                <p className="mt-1 text-sm text-zinc-400">
+                  Crie uma reserva com objetivo — viagem, compra grande, o que for — e acompanhe o progresso.
+                </p>
+              </div>
+              <GoalFormDialog />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {goals.map((goal, index) => {
+                const account = accountsById.get(goal.account_id)
+                if (!account) return null
+                return (
+                  <GoalCard
+                    key={goal.id}
+                    goal={goal}
+                    account={account}
+                    balance={balancesByAccountId.get(goal.account_id) ?? 0}
+                    index={index}
+                  />
+                )
+              })}
+            </div>
+          )}
         </div>
 
         <TipsGrid />

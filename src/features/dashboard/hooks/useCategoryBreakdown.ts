@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
+import { computeCategoryTotals } from '@/features/dashboard/lib/computeCategoryTotals'
 import { useTimeTravelStore } from '@/features/dashboard/store/useTimeTravelStore'
-import { withProjections } from '@/features/transactions/lib/projectTransactions'
 import { useTransactions } from '@/features/transactions/hooks/useTransactions'
 
 export interface CategorySlice {
@@ -24,20 +24,7 @@ export function useCategoryBreakdown(): { slices: CategorySlice[]; total: number
   return useMemo(() => {
     const periodStartTime = new Date(selectedYear, selectedMonth, 1).getTime()
     const periodEndTime = new Date(selectedYear, selectedMonth + 1, 0).getTime()
-    const expanded = withProjections(transactions, periodEndTime)
-
-    const totals = new Map<string, number>()
-
-    for (const transaction of expanded) {
-      if (transaction.transaction_type !== 'expense') continue
-      const isRecurringLike = transaction.recurrence === 'fixed' || transaction.installments_total > 1
-      if (!transaction.is_paid && !transaction.is_projected && !isRecurringLike) continue
-      const date = new Date(`${transaction.date}T00:00:00`).getTime()
-      if (date < periodStartTime || date > periodEndTime) continue
-
-      const category = transaction.category?.trim() || 'Outros'
-      totals.set(category, (totals.get(category) ?? 0) + transaction.amount)
-    }
+    const totals = computeCategoryTotals(transactions, periodStartTime, periodEndTime)
 
     const sorted = [...totals.entries()].sort((a, b) => b[1] - a[1])
     // Reserve one slot for "Outros" whenever there's overflow, so the donut never exceeds

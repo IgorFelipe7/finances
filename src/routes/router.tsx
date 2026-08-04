@@ -12,6 +12,9 @@ const FixedExpensesPage = lazy(() =>
   import('@/routes/FixedExpensesPage').then((m) => ({ default: m.FixedExpensesPage })),
 )
 const EconomiaPage = lazy(() => import('@/routes/EconomiaPage').then((m) => ({ default: m.EconomiaPage })))
+const RetrospectivePage = lazy(() =>
+  import('@/routes/RetrospectivePage').then((m) => ({ default: m.RetrospectivePage })),
+)
 const SettingsPage = lazy(() => import('@/routes/SettingsPage').then((m) => ({ default: m.SettingsPage })))
 
 /** Each route's chunk loads on first visit — this is the Suspense boundary that shows while it fetches. */
@@ -47,6 +50,10 @@ export const router = createBrowserRouter([
   {
     path: '/economia',
     element: <ProtectedRoute>{lazyPage(<EconomiaPage />)}</ProtectedRoute>,
+  },
+  {
+    path: '/retrospectiva',
+    element: <ProtectedRoute>{lazyPage(<RetrospectivePage />)}</ProtectedRoute>,
   },
   {
     path: '/accounts',

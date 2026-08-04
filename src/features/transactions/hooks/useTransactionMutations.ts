@@ -73,6 +73,70 @@ export function useUpdateTransaction() {
   })
 }
 
+export interface PayTransactionInput {
+  id: string
+  /** Projected (virtual) occurrences don't exist in the DB yet — paying one inserts a new settled row instead of updating. */
+  isProjected: boolean
+  account_id: string
+  destination_account_id: string | null
+  title: string
+  amount: number
+  transaction_type: TransactionCategoryType
+  category: string | null
+  date: string
+}
+
+/**
+ * Settles a single occurrence — the anchor's own pending charge, or one specific future month
+ * of a fixed/installment series — without touching any other month. A projected occurrence has
+ * no DB row, so paying it inserts a plain one-off `variable` row (never `fixed`/multi-installment,
+ * so it can't itself spawn new projections); `withProjections` then recognizes the matching
+ * (account, type, title, date) slot and stops generating that month's virtual instance.
+ */
+export function usePayTransaction() {
+  const queryClient = useQueryClient()
+  const userId = useAuthStore((state) => state.user?.id)
+
+  return useMutation({
+    mutationFn: async (input: PayTransactionInput) => {
+      if (input.isProjected) {
+        if (!userId) throw new Error('Usuário não autenticado.')
+
+        const { error } = await supabase.from('transactions').insert({
+          user_id: userId,
+          account_id: input.account_id,
+          destination_account_id: input.destination_account_id,
+          title: input.title,
+          amount: input.amount,
+          transaction_type: input.transaction_type,
+          recurrence: 'variable',
+          category: input.category,
+          date: input.date,
+          is_paid: true,
+          installments_total: 1,
+          installment_current: 1,
+          is_active: true,
+        })
+        if (error) throw error
+        return
+      }
+
+      const { error } = await supabase
+        .from('transactions')
+        .update({ is_paid: true, account_id: input.account_id, amount: input.amount })
+        .eq('id', input.id)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] })
+      toast.success('Pagamento registrado!')
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Não foi possível registrar o pagamento.')
+    },
+  })
+}
+
 export function useDeactivateTransaction() {
   const queryClient = useQueryClient()
 

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowLeftRight, Ban, MoreVertical, Repeat, Trash2 } from 'lucide-react'
+import { ArrowLeftRight, Ban, CircleDollarSign, MoreVertical, Repeat, Trash2 } from 'lucide-react'
 import { AppLayout } from '@/components/layout/AppLayout'
 import {
   AlertDialog,
@@ -30,6 +30,7 @@ import {
 import { useAccounts } from '@/features/accounts/hooks/useAccounts'
 import { useTimeTravelStore } from '@/features/dashboard/store/useTimeTravelStore'
 import { TRANSACTION_TYPE_META } from '@/features/transactions/constants'
+import { PayTransactionDialog } from '@/features/transactions/components/PayTransactionDialog'
 import { TransactionFormDialog } from '@/features/transactions/components/TransactionFormDialog'
 import { useCancelRecurrence, useDeactivateTransaction } from '@/features/transactions/hooks/useTransactionMutations'
 import { useTransactions } from '@/features/transactions/hooks/useTransactions'
@@ -133,6 +134,23 @@ function TransactionRow({
         {!isTransfer && signedAmount > 0 ? '+' : ''}
         {formatCurrency(signedAmount)}
       </p>
+
+      {!transaction.is_paid && (
+        <PayTransactionDialog
+          transaction={transaction}
+          trigger={
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="shrink-0 gap-1 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+            >
+              <CircleDollarSign className="size-3.5" />
+              {transaction.transaction_type === 'income' ? 'Receber' : 'Pagar'}
+            </Button>
+          }
+        />
+      )}
 
       {isFixed ? (
         <>

@@ -1,6 +1,16 @@
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Ban, CalendarClock, MoreVertical, Pencil, Repeat, TrendingDown, TrendingUp, Wallet } from 'lucide-react'
+import {
+  Ban,
+  CalendarClock,
+  CircleDollarSign,
+  MoreVertical,
+  Pencil,
+  Repeat,
+  TrendingDown,
+  TrendingUp,
+  Wallet,
+} from 'lucide-react'
 import { AnimatedNumber } from '@/components/AnimatedNumber'
 import { AppLayout } from '@/components/layout/AppLayout'
 import {
@@ -25,6 +35,7 @@ import {
 import { useAccounts } from '@/features/accounts/hooks/useAccounts'
 import { TRANSACTION_TYPE_META } from '@/features/transactions/constants'
 import { EditFixedTransactionDialog } from '@/features/transactions/components/EditFixedTransactionDialog'
+import { PayTransactionDialog } from '@/features/transactions/components/PayTransactionDialog'
 import { TransactionFormDialog } from '@/features/transactions/components/TransactionFormDialog'
 import { useCancelRecurrence } from '@/features/transactions/hooks/useTransactionMutations'
 import { useTransactions } from '@/features/transactions/hooks/useTransactions'
@@ -89,6 +100,23 @@ function FixedExpenseRow({
         {transaction.transaction_type === 'income' ? '+' : '-'}
         {formatCurrency(transaction.amount)}
       </p>
+
+      {!transaction.is_paid && (
+        <PayTransactionDialog
+          transaction={{ ...transaction, is_projected: false, anchor_id: transaction.id }}
+          trigger={
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="shrink-0 gap-1 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+            >
+              <CircleDollarSign className="size-3.5" />
+              {transaction.transaction_type === 'income' ? 'Receber' : 'Pagar'}
+            </Button>
+          }
+        />
+      )}
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

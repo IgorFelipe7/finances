@@ -79,6 +79,16 @@ npm run preview   # preview the production build locally
 npm run lint       # run oxlint
 ```
 
+## Deployment
+
+This is a static SPA — [Vercel](https://vercel.com) is the recommended host (zero-config Vite detection, automatic deploys from GitHub, preview URLs per branch). A `vercel.json` is already included, with a catch-all rewrite to `index.html` so client-side routes (React Router) resolve correctly on refresh/deep links. Netlify and Cloudflare Pages work just as well if you prefer those.
+
+1. Import the GitHub repo into Vercel.
+2. Add the three environment variables from the table above (Project Settings → Environment Variables).
+3. Deploy — the build command and output directory are already configured in `vercel.json`.
+4. In your Supabase project, go to **Authentication → URL Configuration** and add your production domain to the Site URL / Redirect URLs, or auth flows will fail.
+5. Set a spend limit on your OpenAI account (Billing → Limits). The API key is called directly from the browser (see note above), so it's visible to anyone inspecting network traffic once deployed publicly.
+
 ## Project Structure
 
 ```

@@ -152,7 +152,7 @@ function TransactionRow({
         />
       )}
 
-      {isFixed ? (
+      {isFixed || isInstallment ? (
         <>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -161,7 +161,7 @@ function TransactionRow({
                 variant="ghost"
                 size="icon-sm"
                 className="shrink-0 text-zinc-500 opacity-0 transition-opacity group-hover:opacity-100 data-[state=open]:opacity-100"
-                aria-label="Opções da despesa fixa"
+                aria-label="Opções da recorrência"
               >
                 <MoreVertical className="size-4" />
               </Button>
@@ -187,14 +187,26 @@ function TransactionRow({
               <AlertDialogHeader>
                 <AlertDialogTitle>Cancelar "{transaction.title}"?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Essa despesa fixa deixará de se repetir nos próximos meses. O histórico já lançado é mantido.
+                  {isInstallment
+                    ? 'As próximas parcelas deixam de ser lançadas. O histórico já lançado é mantido.'
+                    : 'Essa despesa fixa deixará de se repetir nos próximos meses. O histórico já lançado é mantido.'}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Voltar</AlertDialogCancel>
                 <AlertDialogAction
                   disabled={cancelRecurrence.isPending}
-                  onClick={() => cancelRecurrence.mutate(transaction.anchor_id, { onSuccess: () => setCancelOpen(false) })}
+                  onClick={() =>
+                    cancelRecurrence.mutate(
+                      {
+                        id: transaction.anchor_id,
+                        recurrence: transaction.recurrence,
+                        installments_total: transaction.installments_total,
+                        installment_current: transaction.installment_current,
+                      },
+                      { onSuccess: () => setCancelOpen(false) },
+                    )
+                  }
                 >
                   {cancelRecurrence.isPending ? 'Cancelando...' : 'Cancelar recorrência'}
                 </AlertDialogAction>

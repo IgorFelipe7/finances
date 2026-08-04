@@ -41,11 +41,27 @@ import { useCancelRecurrence } from '@/features/transactions/hooks/useTransactio
 import { useTransactions } from '@/features/transactions/hooks/useTransactions'
 import type { Transaction } from '@/features/transactions/schemas/transaction.schema'
 import { formatCurrency } from '@/lib/currency'
-import { nextMonthlyOccurrence } from '@/lib/date'
+import { addMonthsToIsoDate, nextMonthlyOccurrence } from '@/lib/date'
 import { cn } from '@/lib/utils'
 
 function formatShortDate(dateIso: string) {
   return new Date(`${dateIso}T00:00:00`).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
+}
+
+function todayIso() {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+}
+
+/** True for `fixed` recurrence (no end), or an installment series that still has a future charge left. */
+function isOngoingRecurring(transaction: Transaction, today: string): boolean {
+  if (transaction.recurrence === 'fixed') return true
+  if (transaction.installments_total <= 1) return false
+  const lastOccurrence = addMonthsToIsoDate(
+    transaction.date,
+    transaction.installments_total - transaction.installment_current,
+  )
+  return lastOccurrence >= today
 }
 
 function FixedExpenseRow({
@@ -63,6 +79,8 @@ function FixedExpenseRow({
   const cancelRecurrence = useCancelRecurrence()
   const nextCharge = nextMonthlyOccurrence(transaction.date)
   const dayOfMonth = Number(transaction.date.split('-')[2])
+  const isInstallment = transaction.installments_total > 1
+  const remainingInstallments = isInstallment ? transaction.installments_total - transaction.installment_current : 0
 
   return (
     <motion.div
@@ -86,9 +104,14 @@ function FixedExpenseRow({
       <div className="hidden shrink-0 items-center gap-2 sm:flex">
         <Badge variant="outline" className="gap-1 text-xs text-primary">
           <Repeat className="size-3" />
-          Todo dia {dayOfMonth}
+          {isInstallment
+            ? `Parcela ${transaction.installment_current}/${transaction.installments_total}`
+            : `Todo dia ${dayOfMonth}`}
         </Badge>
-        <span className="text-xs text-zinc-400">próx. {formatShortDate(nextCharge)}</span>
+        <span className="text-xs text-zinc-400">
+          próx. {formatShortDate(nextCharge)}
+          {isInstallment ? ` · faltam ${remainingInstallments}` : ''}
+        </span>
       </div>
 
       <p
@@ -156,7 +179,17 @@ function FixedExpenseRow({
             <AlertDialogCancel>Voltar</AlertDialogCancel>
             <AlertDialogAction
               disabled={cancelRecurrence.isPending}
-              onClick={() => cancelRecurrence.mutate(transaction.id, { onSuccess: () => setCancelOpen(false) })}
+              onClick={() =>
+                cancelRecurrence.mutate(
+                  {
+                    id: transaction.id,
+                    recurrence: transaction.recurrence,
+                    installments_total: transaction.installments_total,
+                    installment_current: transaction.installment_current,
+                  },
+                  { onSuccess: () => setCancelOpen(false) },
+                )
+              }
             >
               {cancelRecurrence.isPending ? 'Parando...' : 'Parar recorrência'}
             </AlertDialogAction>
@@ -262,21 +295,19 @@ export function FixedExpensesPage() {
 
   const accountsById = useMemo(() => new Map(accounts.map((account) => [account.id, account])), [accounts])
 
-  const fixedExpenses = useMemo(
-    () =>
-      transactions
-        .filter((t) => t.recurrence === 'fixed' && t.transaction_type === 'expense')
-        .sort((a, b) => b.amount - a.amount),
-    [transactions],
-  )
+  const fixedExpenses = useMemo(() => {
+    const today = todayIso()
+    return transactions
+      .filter((t) => t.transaction_type === 'expense' && isOngoingRecurring(t, today))
+      .sort((a, b) => b.amount - a.amount)
+  }, [transactions])
 
-  const fixedIncomes = useMemo(
-    () =>
-      transactions
-        .filter((t) => t.recurrence === 'fixed' && t.transaction_type === 'income')
-        .sort((a, b) => b.amount - a.amount),
-    [transactions],
-  )
+  const fixedIncomes = useMemo(() => {
+    const today = todayIso()
+    return transactions
+      .filter((t) => t.transaction_type === 'income' && isOngoingRecurring(t, today))
+      .sort((a, b) => b.amount - a.amount)
+  }, [transactions])
 
   const upcomingCharges = useMemo(() => {
     const all = [...fixedExpenses, ...fixedIncomes]

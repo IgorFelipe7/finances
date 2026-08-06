@@ -11,6 +11,7 @@ const TransactionsPage = lazy(() => import('@/routes/TransactionsPage').then((m)
 const FixedExpensesPage = lazy(() =>
   import('@/routes/FixedExpensesPage').then((m) => ({ default: m.FixedExpensesPage })),
 )
+const CalendarPage = lazy(() => import('@/routes/CalendarPage').then((m) => ({ default: m.CalendarPage })))
 const EconomiaPage = lazy(() => import('@/routes/EconomiaPage').then((m) => ({ default: m.EconomiaPage })))
 const RetrospectivePage = lazy(() =>
   import('@/routes/RetrospectivePage').then((m) => ({ default: m.RetrospectivePage })),
@@ -46,6 +47,10 @@ export const router = createBrowserRouter([
   {
     path: '/fixed-expenses',
     element: <ProtectedRoute>{lazyPage(<FixedExpensesPage />)}</ProtectedRoute>,
+  },
+  {
+    path: '/calendario',
+    element: <ProtectedRoute>{lazyPage(<CalendarPage />)}</ProtectedRoute>,
   },
   {
     path: '/economia',

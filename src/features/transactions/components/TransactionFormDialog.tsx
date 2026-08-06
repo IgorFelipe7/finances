@@ -33,8 +33,10 @@ import { useAccounts } from '@/features/accounts/hooks/useAccounts'
 import { TRANSACTION_CATEGORY_SUGGESTIONS, TRANSACTION_TYPE_META } from '@/features/transactions/constants'
 import { useCreateTransaction } from '@/features/transactions/hooks/useTransactionMutations'
 import { useTransactions } from '@/features/transactions/hooks/useTransactions'
+import { resolveRecurrenceDate, toIsoDate } from '@/features/transactions/lib/recurrenceRule'
 import {
   transactionFormSchema,
+  type RecurrenceRule,
   type RepeatMode,
   type TransactionFormInput,
 } from '@/features/transactions/schemas/transaction.schema'
@@ -44,6 +46,29 @@ const REPEAT_MODE_OPTIONS: { value: RepeatMode; label: string }[] = [
   { value: 'fixed', label: 'Fixa (todo mês)' },
   { value: 'installment', label: 'Parcelada' },
 ]
+
+const WEEKDAY_OPTIONS = [
+  { value: 0, label: 'Domingo' },
+  { value: 1, label: 'Segunda-feira' },
+  { value: 2, label: 'Terça-feira' },
+  { value: 3, label: 'Quarta-feira' },
+  { value: 4, label: 'Quinta-feira' },
+  { value: 5, label: 'Sexta-feira' },
+  { value: 6, label: 'Sábado' },
+]
+
+const OCCURRENCE_OPTIONS = [
+  { value: 1, label: '1ª' },
+  { value: 2, label: '2ª' },
+  { value: 3, label: '3ª' },
+  { value: 4, label: '4ª' },
+  { value: -1, label: 'Última' },
+]
+
+function formatPreviewDate(dateIso: string) {
+  if (!dateIso) return ''
+  return new Date(`${dateIso}T00:00:00`).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })
+}
 
 interface TransactionFormDialogProps {
   trigger?: ReactNode
@@ -73,6 +98,11 @@ function buildDefaultValues(
     is_paid: true,
     repeat_mode: defaultRepeatMode,
     installments_total: 2,
+    recurrence_kind: 'day_of_month',
+    recurrence_weekday: 1,
+    recurrence_occurrence: 1,
+    recurrence_business_day_n: 5,
+    recurrence_count_saturday: false,
     ...initialValues,
   }
 }
@@ -110,9 +140,46 @@ export function TransactionFormDialog({
   const transactionType = form.watch('transaction_type')
   const originAccountId = form.watch('account_id')
   const repeatMode = form.watch('repeat_mode')
+  const recurrenceKind = form.watch('recurrence_kind')
+  const recurrenceWeekday = form.watch('recurrence_weekday')
+  const recurrenceOccurrence = form.watch('recurrence_occurrence')
+  const recurrenceBusinessDayN = form.watch('recurrence_business_day_n')
+  const recurrenceCountSaturday = form.watch('recurrence_count_saturday')
+  const watchedDate = form.watch('date')
+
+  // Weekday/business-day rules don't let the user pick an arbitrary date — the date IS the rule's
+  // output for whichever month is currently selected, recomputed live as the rule's own inputs change.
+  useEffect(() => {
+    if (repeatMode !== 'fixed' || recurrenceKind === 'day_of_month') return
+
+    const rule: RecurrenceRule =
+      recurrenceKind === 'weekday_occurrence'
+        ? { type: 'weekday_occurrence', weekday: recurrenceWeekday, occurrence: recurrenceOccurrence as 1 | 2 | 3 | 4 | -1 }
+        : { type: 'business_day', n: recurrenceBusinessDayN, countSaturday: recurrenceCountSaturday }
+
+    const currentDate = form.getValues('date')
+    const reference = currentDate ? new Date(`${currentDate}T00:00:00`) : new Date()
+    const base = Number.isNaN(reference.getTime()) ? new Date() : reference
+    const resolved = toIsoDate(resolveRecurrenceDate(rule, base.getFullYear(), base.getMonth()))
+    form.setValue('date', resolved, { shouldValidate: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [repeatMode, recurrenceKind, recurrenceWeekday, recurrenceOccurrence, recurrenceBusinessDayN, recurrenceCountSaturday])
 
   function onSubmit(values: TransactionFormInput) {
     const isInstallment = values.repeat_mode === 'installment' && values.transaction_type !== 'transfer'
+    const isFixed = values.repeat_mode === 'fixed' && values.transaction_type !== 'transfer'
+
+    const recurrenceRule: RecurrenceRule | null = !isFixed
+      ? null
+      : values.recurrence_kind === 'weekday_occurrence'
+        ? {
+            type: 'weekday_occurrence',
+            weekday: values.recurrence_weekday,
+            occurrence: values.recurrence_occurrence as 1 | 2 | 3 | 4 | -1,
+          }
+        : values.recurrence_kind === 'business_day'
+          ? { type: 'business_day', n: values.recurrence_business_day_n, countSaturday: values.recurrence_count_saturday }
+          : null
 
     createTransaction.mutate(
       {
@@ -121,17 +188,25 @@ export function TransactionFormDialog({
         title: values.title,
         amount: values.amount,
         transaction_type: values.transaction_type,
-        recurrence: values.repeat_mode === 'fixed' && values.transaction_type !== 'transfer' ? 'fixed' : 'variable',
+        recurrence: isFixed ? 'fixed' : 'variable',
         category: values.category?.trim() || null,
         date: values.date,
         is_paid: values.is_paid,
         installments_total: isInstallment ? values.installments_total : 1,
         installment_current: 1,
+        recurrence_rule: recurrenceRule,
       },
       {
         onSuccess: () => {
           setOpen(false)
-          form.reset({ ...form.getValues(), title: '', amount: 0, category: null, repeat_mode: defaultRepeatMode })
+          form.reset({
+            ...form.getValues(),
+            title: '',
+            amount: 0,
+            category: null,
+            repeat_mode: defaultRepeatMode,
+            recurrence_kind: 'day_of_month',
+          })
         },
       },
     )
@@ -232,15 +307,25 @@ export function TransactionFormDialog({
               <FormField
                 control={form.control}
                 name="date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Data</FormLabel>
-                    <FormControl>
-                      <Input type="date" disabled={createTransaction.isPending} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const isRuleControlled = repeatMode === 'fixed' && recurrenceKind !== 'day_of_month'
+                  return (
+                    <FormItem>
+                      <FormLabel>Data</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="date"
+                          disabled={createTransaction.isPending || isRuleControlled}
+                          {...field}
+                        />
+                      </FormControl>
+                      {isRuleControlled && (
+                        <p className="text-xs text-zinc-500">Calculada pela regra de recorrência abaixo.</p>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
               />
             </div>
 
@@ -384,6 +469,138 @@ export function TransactionFormDialog({
                       </FormItem>
                     )}
                   />
+                )}
+              </div>
+            )}
+
+            {repeatMode === 'fixed' && transactionType !== 'transfer' && (
+              <div className="space-y-3 rounded-lg border border-input px-3 py-2.5">
+                <FormField
+                  control={form.control}
+                  name="recurrence_kind"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cai em</FormLabel>
+                      <Select value={field.value} onValueChange={field.onChange} disabled={createTransaction.isPending}>
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="day_of_month">Dia fixo do mês</SelectItem>
+                          <SelectItem value="weekday_occurrence">Dia da semana (ex: 1ª segunda)</SelectItem>
+                          <SelectItem value="business_day">Dia útil do mês (ex: 5º dia útil)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
+
+                {recurrenceKind === 'weekday_occurrence' && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <FormField
+                      control={form.control}
+                      name="recurrence_occurrence"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Ocorrência</FormLabel>
+                          <Select
+                            value={String(field.value)}
+                            onValueChange={(value) => field.onChange(Number(value))}
+                            disabled={createTransaction.isPending}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="w-full">
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {OCCURRENCE_OPTIONS.map((option) => (
+                                <SelectItem key={option.value} value={String(option.value)}>
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="recurrence_weekday"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Dia da semana</FormLabel>
+                          <Select
+                            value={String(field.value)}
+                            onValueChange={(value) => field.onChange(Number(value))}
+                            disabled={createTransaction.isPending}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="w-full">
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {WEEKDAY_OPTIONS.map((option) => (
+                                <SelectItem key={option.value} value={String(option.value)}>
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+
+                {recurrenceKind === 'business_day' && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <FormField
+                      control={form.control}
+                      name="recurrence_business_day_n"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Qual dia útil</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min={1}
+                              max={23}
+                              disabled={createTransaction.isPending}
+                              {...field}
+                              onChange={(event) => field.onChange(event.target.valueAsNumber)}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="recurrence_count_saturday"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border border-input px-3 py-2">
+                          <FormLabel className="text-xs leading-tight">Sábado conta como dia útil?</FormLabel>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              disabled={createTransaction.isPending}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+
+                {recurrenceKind !== 'day_of_month' && (
+                  <p className="text-xs text-zinc-400">
+                    Esse mês cai em <span className="font-medium text-foreground">{formatPreviewDate(watchedDate)}</span> —
+                    todo mês a data é recalculada pela regra.
+                  </p>
                 )}
               </div>
             )}

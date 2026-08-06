@@ -10,10 +10,13 @@ Built as a single-page app on React 19 + Vite, backed by Supabase (Postgres, Aut
 Type a transaction the way you'd say it out loud — *"paguei 80 de pizza no Nubank"* — and it's parsed into a structured transaction (amount, category, account, date) automatically. The parser also detects recurring language ("todo mês", "assinatura", "mensalidade") and files the entry as a fixed expense on its own.
 
 ### Recurring / Fixed Expenses
-Register a rent, subscription, or salary once and it keeps appearing every month — projected forward automatically — until you explicitly stop it. History stays intact even after cancellation. A dedicated page lets you:
+Register a rent, subscription, or salary once and it keeps appearing every month — projected forward automatically — until you explicitly stop it. History stays intact even after cancellation. Recurrence isn't limited to "same day every month": a fixed entry can instead land on the Nth weekday (e.g. "toda 1ª segunda") or the Nth business day of the month (e.g. "5º dia útil", with Saturday optionally counted as a business day) — common for salaries that don't pay on a fixed calendar date. A dedicated page lets you:
 - See every active fixed expense/income with its monthly total and next charge date
 - Edit amount, title, category, or billing day without deleting and recreating
 - Preview a chronological timeline of upcoming charges across all recurring items
+
+### Calendar
+A month grid showing real and projected transactions on the exact day they fall on — including recurring items using the flexible recurrence rules above, so "5º dia útil" always lands on the right date each month. Each day shows income/expense totals and a heat tint scaled to that day's spend; clicking a day opens its full list of transactions with quick pay/receive actions and a shortcut to add a new one dated that day.
 
 ### AI Dashboard Insights
 The dashboard computes real financial facts client-side — spending pace vs. income, safe-to-spend-per-day, bills due today or overdue, installments finishing this month — and hands them to an LLM to phrase into short, prioritized, actionable messages. Numbers are never invented by the model; if the AI call fails for any reason, a deterministic fallback generator produces the same messages without it.

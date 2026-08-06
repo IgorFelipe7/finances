@@ -39,9 +39,10 @@ import { PayTransactionDialog } from '@/features/transactions/components/PayTran
 import { TransactionFormDialog } from '@/features/transactions/components/TransactionFormDialog'
 import { useCancelRecurrence } from '@/features/transactions/hooks/useTransactionMutations'
 import { useTransactions } from '@/features/transactions/hooks/useTransactions'
+import { formatRecurrenceRuleLabel, nextOccurrenceForTransaction } from '@/features/transactions/lib/recurrenceRule'
 import type { Transaction } from '@/features/transactions/schemas/transaction.schema'
 import { formatCurrency } from '@/lib/currency'
-import { addMonthsToIsoDate, nextMonthlyOccurrence } from '@/lib/date'
+import { addMonthsToIsoDate } from '@/lib/date'
 import { cn } from '@/lib/utils'
 
 function formatShortDate(dateIso: string) {
@@ -77,8 +78,11 @@ function FixedExpenseRow({
   const [editOpen, setEditOpen] = useState(false)
   const meta = TRANSACTION_TYPE_META[transaction.transaction_type]
   const cancelRecurrence = useCancelRecurrence()
-  const nextCharge = nextMonthlyOccurrence(transaction.date)
+  const nextCharge = nextOccurrenceForTransaction(transaction)
   const dayOfMonth = Number(transaction.date.split('-')[2])
+  const recurrenceLabel = transaction.recurrence_rule
+    ? formatRecurrenceRuleLabel(transaction.recurrence_rule)
+    : `Todo dia ${dayOfMonth}`
   const isInstallment = transaction.installments_total > 1
   const remainingInstallments = isInstallment ? transaction.installments_total - transaction.installment_current : 0
 
@@ -104,9 +108,7 @@ function FixedExpenseRow({
       <div className="hidden shrink-0 items-center gap-2 sm:flex">
         <Badge variant="outline" className="gap-1 text-xs text-primary">
           <Repeat className="size-3" />
-          {isInstallment
-            ? `Parcela ${transaction.installment_current}/${transaction.installments_total}`
-            : `Todo dia ${dayOfMonth}`}
+          {isInstallment ? `Parcela ${transaction.installment_current}/${transaction.installments_total}` : recurrenceLabel}
         </Badge>
         <span className="text-xs text-zinc-400">
           próx. {formatShortDate(nextCharge)}
@@ -315,7 +317,7 @@ export function FixedExpensesPage() {
       id: transaction.id,
       title: transaction.title,
       amount: transaction.amount,
-      date: nextMonthlyOccurrence(transaction.date),
+      date: nextOccurrenceForTransaction(transaction),
       type: transaction.transaction_type as 'income' | 'expense',
     }))
     return charges.sort((a, b) => a.date.localeCompare(b.date)).slice(0, 8)

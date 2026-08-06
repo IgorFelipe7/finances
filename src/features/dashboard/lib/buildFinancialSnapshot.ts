@@ -1,9 +1,16 @@
 import { computeCreditCardInvoices } from '@/features/accounts/lib/creditCard'
 import type { Account } from '@/features/accounts/schemas/account.schema'
+import { computeBudgetProgress, type BudgetProgress } from '@/features/budgets/lib/computeBudgetProgress'
+import type { Budget } from '@/features/budgets/schemas/budget.schema'
+import { computeCategoryTotals } from '@/features/dashboard/lib/computeCategoryTotals'
+import type { Goal } from '@/features/goals/schemas/goal.schema'
 import { withProjections } from '@/features/transactions/lib/projectTransactions'
 import type { Transaction } from '@/features/transactions/schemas/transaction.schema'
 import { formatCurrency } from '@/lib/currency'
 import { formatMonthYear } from '@/lib/date'
+
+const MAX_CATEGORY_SLICES = 8
+const MAX_RECENT_TRANSACTIONS = 15
 
 export interface SnapshotCharge {
   title: string
@@ -16,6 +23,26 @@ export interface EndingInstallment {
   title: string
   amount: number
   installmentsTotal: number
+}
+
+export interface CategorySpend {
+  category: string
+  amount: number
+}
+
+export interface GoalProgress {
+  name: string
+  current: number
+  target: number
+  targetDate: string | null
+}
+
+export interface RecentTransaction {
+  title: string
+  amount: number
+  date: string
+  type: 'income' | 'expense' | 'transfer'
+  category: string | null
 }
 
 export interface FinancialSnapshot {
@@ -45,6 +72,11 @@ export interface FinancialSnapshot {
 
   totalSaved: number
   recommendedSavings: number
+
+  categoryBreakdown: CategorySpend[]
+  budgetStatus: BudgetProgress[]
+  goalsProgress: GoalProgress[]
+  recentTransactions: RecentTransaction[]
 }
 
 /**
@@ -54,6 +86,8 @@ export interface FinancialSnapshot {
 export function buildFinancialSnapshot(
   accounts: Account[],
   transactions: Transaction[],
+  budgets: Budget[] = [],
+  goals: Goal[] = [],
   referenceDate: Date = new Date(),
 ): FinancialSnapshot {
   const year = referenceDate.getFullYear()
@@ -166,6 +200,31 @@ export function buildFinancialSnapshot(
   // Suggest banking a slice of income, but never more than what's actually free this month.
   const recommendedSavings = Math.min(confirmedIncome * 0.2, Math.max(freeCashThisMonth, 0))
 
+  // Same shared function the donut chart and Budgets panel use, so the numbers the assistant
+  // talks about never disagree with what's on screen.
+  const categoryTotals = computeCategoryTotals(transactions, periodStart.getTime(), periodEnd.getTime())
+  const categoryBreakdown: CategorySpend[] = [...categoryTotals.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, MAX_CATEGORY_SLICES)
+    .map(([category, amount]) => ({ category, amount }))
+
+  const budgetStatus = computeBudgetProgress(budgets, categoryTotals)
+
+  const goalsProgress: GoalProgress[] = goals.map((goal) => ({
+    name: goal.name,
+    current: balances.get(goal.account_id) ?? 0,
+    target: goal.target_amount,
+    targetDate: goal.target_date,
+  }))
+
+  // Bounded regardless of how many years of history the user has — keeps the prompt (and cost)
+  // flat over time instead of growing with the account's age.
+  const recentTransactions: RecentTransaction[] = transactions
+    .filter((t) => t.is_paid)
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, MAX_RECENT_TRANSACTIONS)
+    .map((t) => ({ title: t.title, amount: t.amount, date: t.date, type: t.transaction_type, category: t.category }))
+
   return {
     today: todayIso,
     monthLabel: formatMonthYear(month, year),
@@ -192,6 +251,10 @@ export function buildFinancialSnapshot(
     safeToSpendPerDay,
     totalSaved,
     recommendedSavings,
+    categoryBreakdown,
+    budgetStatus,
+    goalsProgress,
+    recentTransactions,
   }
 }
 
@@ -239,6 +302,36 @@ export function snapshotToPromptFacts(snapshot: FinancialSnapshot): string {
     lines.push('Parcelamentos terminando este mês (última parcela):')
     for (const i of snapshot.endingInstallments) {
       lines.push(`- ${i.title}: ${formatCurrency(i.amount)} (parcela ${i.installmentsTotal}/${i.installmentsTotal}, última)`)
+    }
+  }
+
+  if (snapshot.categoryBreakdown.length > 0) {
+    lines.push('Gasto por categoria este mês (maior primeiro):')
+    for (const c of snapshot.categoryBreakdown) lines.push(`- ${c.category}: ${formatCurrency(c.amount)}`)
+  }
+
+  if (snapshot.budgetStatus.length > 0) {
+    lines.push('Orçamentos por categoria que o usuário definiu (limite mensal vs. já gasto):')
+    for (const b of snapshot.budgetStatus) {
+      const statusLabel = b.status === 'over' ? 'ESTOUROU' : b.status === 'warning' ? 'perto do limite' : 'tranquilo'
+      lines.push(`- ${b.category}: ${formatCurrency(b.spent)} de ${formatCurrency(b.limit)} (${statusLabel})`)
+    }
+  }
+
+  if (snapshot.goalsProgress.length > 0) {
+    lines.push('Metas de economia:')
+    for (const g of snapshot.goalsProgress) {
+      const percent = g.target > 0 ? Math.round((g.current / g.target) * 100) : 0
+      const dateInfo = g.targetDate ? `, prazo ${g.targetDate}` : ''
+      lines.push(`- ${g.name}: ${formatCurrency(g.current)} de ${formatCurrency(g.target)} (${percent}%${dateInfo})`)
+    }
+  }
+
+  if (snapshot.recentTransactions.length > 0) {
+    lines.push(`Últimas ${snapshot.recentTransactions.length} transações pagas (mais recente primeiro — use isso pra responder sobre compras específicas):`)
+    for (const t of snapshot.recentTransactions) {
+      const sign = t.type === 'income' ? '+' : t.type === 'expense' ? '-' : '⇄'
+      lines.push(`- ${t.date} ${sign}${formatCurrency(t.amount)} ${t.title}${t.category ? ` (${t.category})` : ''}`)
     }
   }
 

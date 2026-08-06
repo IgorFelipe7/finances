@@ -25,6 +25,10 @@ function makeSnapshot(overrides: Partial<FinancialSnapshot> = {}): FinancialSnap
     safeToSpendPerDay: 29.6,
     totalSaved: 1200, // 6 months of the 200/month expense estimate — fully covers the target
     recommendedSavings: 200,
+    categoryBreakdown: [],
+    budgetStatus: [],
+    goalsProgress: [],
+    recentTransactions: [],
     ...overrides,
   }
 }

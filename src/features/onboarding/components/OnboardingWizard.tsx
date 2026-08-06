@@ -91,7 +91,10 @@ export function OnboardingWizard() {
   const current = steps[step]
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm">
+    // Between BottomNav/AssistantPanel (z-40) and Dialog (z-50) on purpose — Step 2 opens
+    // AccountFormDialog on top of this backdrop, and it must render above the wizard, not be
+    // trapped underneath it; still covers the rest of the app's chrome while onboarding is active.
+    <div className="fixed inset-0 z-[45] flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm">
       <AnimatePresence mode="wait">
         <motion.div
           key={step}

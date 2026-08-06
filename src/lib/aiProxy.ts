@@ -23,13 +23,23 @@ async function authHeaders(): Promise<HeadersInit> {
   const { data } = await supabase.auth.getSession()
   const token = data.session?.access_token
   if (!token) throw new Error('Você precisa estar autenticado para usar os recursos de IA.')
-  return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+  // The Supabase gateway in front of Edge Functions expects `apikey` on every request (the
+  // supabase-js client sends it automatically for REST/Realtime; raw fetch() doesn't, and its
+  // absence surfaces as a 401 even though `Authorization` carries a perfectly valid user JWT.
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+    apikey: import.meta.env.VITE_SUPABASE_ANON_KEY as string,
+  }
 }
 
 async function readErrorMessage(response: Response): Promise<string> {
   try {
     const body = await response.json()
-    return body?.error || response.statusText
+    const message = body?.error ?? body?.message
+    if (typeof message === 'string' && message) return message
+    if (message && typeof message === 'object') return JSON.stringify(message)
+    return response.statusText || `HTTP ${response.status}`
   } catch {
     return response.statusText || `HTTP ${response.status}`
   }

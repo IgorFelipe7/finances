@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowRight, Bot, Landmark, Sparkles, Wallet } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -7,31 +7,33 @@ import { useAccounts } from '@/features/accounts/hooks/useAccounts'
 import { useOnboardingStore } from '@/features/onboarding/store/useOnboardingStore'
 import { cn } from '@/lib/utils'
 
+// AppLayout (and this component with it) remounts on every route navigation, so open/step state
+// lives in the store rather than local useState. This guard makes the auto-open check itself run
+// only once per page load instead of re-evaluating — and potentially reopening — on every nav.
+let hasEvaluatedAutoOpen = false
+
 /** Shown once for a brand-new user (no accounts yet) — stays open through all steps even after
  * they create their first account mid-flow, and never triggers again once dismissed/finished. */
 export function OnboardingWizard() {
   const hasSeenOnboarding = useOnboardingStore((state) => state.hasSeenOnboarding)
-  const markSeen = useOnboardingStore((state) => state.markSeen)
+  const active = useOnboardingStore((state) => state.active)
+  const step = useOnboardingStore((state) => state.step)
+  const open = useOnboardingStore((state) => state.open)
+  const setStep = useOnboardingStore((state) => state.setStep)
+  const finish = useOnboardingStore((state) => state.finish)
   const { data: accounts = [], isLoading } = useAccounts()
-  const [step, setStep] = useState(0)
-  const [active, setActive] = useState(false)
 
   useEffect(() => {
-    if (!isLoading && !hasSeenOnboarding && accounts.length === 0) setActive(true)
-    // Decide exactly once, right when the accounts query settles — never re-trigger afterward.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading])
+    if (hasEvaluatedAutoOpen || isLoading) return
+    hasEvaluatedAutoOpen = true
+    if (!hasSeenOnboarding && accounts.length === 0) open()
+  }, [isLoading, hasSeenOnboarding, accounts.length, open])
 
   useEffect(() => {
     if (active && step === 1 && accounts.length > 0) setStep(2)
-  }, [accounts.length, active, step])
+  }, [accounts.length, active, step, setStep])
 
   if (!active) return null
-
-  function finish() {
-    markSeen()
-    setActive(false)
-  }
 
   const steps = [
     {

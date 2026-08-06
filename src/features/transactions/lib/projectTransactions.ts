@@ -1,9 +1,18 @@
+import { resolveRecurrenceDate, toIsoDate } from '@/features/transactions/lib/recurrenceRule'
 import { addMonthsToIsoDate } from '@/lib/date'
 import type { Transaction } from '@/features/transactions/schemas/transaction.schema'
 
 export type ProjectedTransaction = Transaction & { is_projected: boolean; anchor_id: string }
 
 const MAX_PROJECTED_MONTHS = 60
+
+/** Same-day-of-month shift by default; a `recurrence_rule` recomputes the date for that month instead. */
+function projectedDateFor(transaction: Transaction, offset: number): string {
+  if (!transaction.recurrence_rule) return addMonthsToIsoDate(transaction.date, offset)
+
+  const anchor = new Date(`${transaction.date}T00:00:00`)
+  return toIsoDate(resolveRecurrenceDate(transaction.recurrence_rule, anchor.getFullYear(), anchor.getMonth() + offset))
+}
 
 /** Identifies "the same recurring slot" — matches how a settled row is created in `usePayTransaction`. */
 function occurrenceKey(transaction: Pick<Transaction, 'account_id' | 'transaction_type' | 'title' | 'date'>) {
@@ -32,7 +41,7 @@ function* generateVirtualInstances(
   const maxOffset = isInstallment ? transaction.installments_total - transaction.installment_current : Infinity
 
   for (let offset = 1; offset <= Math.min(maxOffset, MAX_PROJECTED_MONTHS); offset++) {
-    const projectedDate = addMonthsToIsoDate(transaction.date, offset)
+    const projectedDate = projectedDateFor(transaction, offset)
     if (new Date(projectedDate).getTime() > periodEndTime) break
 
     const key = occurrenceKey({

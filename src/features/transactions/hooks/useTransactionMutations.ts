@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { supabase } from '@/config/supabase'
 import { useAuthStore } from '@/features/auth/store/useAuthStore'
 import type {
+  RecurrenceRule,
   TransactionCategoryType,
   TransactionRecurrence,
 } from '@/features/transactions/schemas/transaction.schema'
@@ -19,6 +20,7 @@ export interface CreateTransactionInput {
   is_paid?: boolean
   installments_total?: number
   installment_current?: number
+  recurrence_rule?: RecurrenceRule | null
 }
 
 export function useCreateTransaction() {

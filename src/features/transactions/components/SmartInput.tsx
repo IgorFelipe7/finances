@@ -1,13 +1,15 @@
 import { useMemo, useRef, useState } from 'react'
-import { Camera, Loader2, Sparkles } from 'lucide-react'
+import { ArrowUp, Camera, Loader2, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAccounts } from '@/features/accounts/hooks/useAccounts'
 import { TransactionFormDialog } from '@/features/transactions/components/TransactionFormDialog'
+import { useCreateTransaction } from '@/features/transactions/hooks/useTransactionMutations'
 import { useTransactions } from '@/features/transactions/hooks/useTransactions'
 import { parseTransactionText } from '@/features/transactions/services/ai.service'
 import { scanReceiptImage } from '@/features/transactions/services/receiptScanner.service'
 import type { AiTransactionResult } from '@/features/transactions/schemas/ai-transaction.schema'
 import type { TransactionFormInput } from '@/features/transactions/schemas/transaction.schema'
+import { useUIPreferencesStore } from '@/features/settings/store/useUIPreferencesStore'
 import { resizeImageToDataUrl } from '@/lib/resizeImage'
 
 export function SmartInput() {
@@ -18,6 +20,8 @@ export function SmartInput() {
   const [initialValues, setInitialValues] = useState<Partial<TransactionFormInput>>()
   const { data: accounts = [] } = useAccounts()
   const { data: transactions = [] } = useTransactions()
+  const confirmAiTransactions = useUIPreferencesStore((state) => state.confirmAiTransactions)
+  const createTransaction = useCreateTransaction()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const existingCategories = useMemo(
@@ -27,6 +31,20 @@ export function SmartInput() {
 
   function openReviewFrom(result: AiTransactionResult) {
     const isFixed = result.is_fixed && result.transaction_type !== 'transfer'
+
+    if (!confirmAiTransactions) {
+      createTransaction.mutate({
+        account_id: result.account_id,
+        destination_account_id: result.transaction_type === 'transfer' ? result.destination_account_id : null,
+        title: result.title,
+        amount: result.amount,
+        transaction_type: result.transaction_type,
+        recurrence: isFixed ? 'fixed' : 'variable',
+        category: result.category,
+        date: result.date,
+      })
+      return
+    }
 
     setInitialValues({
       transaction_type: result.transaction_type,
@@ -123,6 +141,16 @@ export function SmartInput() {
           onChange={handleReceiptSelected}
           className="hidden"
         />
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={busy || !value.trim()}
+          aria-label="Processar transação"
+          title="Processar transação"
+          className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-opacity disabled:pointer-events-none disabled:opacity-30"
+        >
+          <ArrowUp className="size-4" />
+        </button>
       </div>
 
       {initialValues && (

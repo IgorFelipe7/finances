@@ -17,14 +17,23 @@ async function authHeaders(): Promise<HeadersInit> {
   const { data } = await supabase.auth.getSession()
   const token = data.session?.access_token
   if (!token) throw new Error('Você precisa estar autenticado.')
-  return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+  // See aiProxy.ts — raw fetch() to an Edge Function needs `apikey` explicitly, unlike calls
+  // made through the supabase-js client, or the gateway rejects it with a 401.
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+    apikey: import.meta.env.VITE_SUPABASE_ANON_KEY as string,
+  }
 }
 
 async function callProxy<T>(payload: Record<string, unknown>): Promise<T> {
   const headers = await authHeaders()
   const response = await fetch(functionUrl(), { method: 'POST', headers, body: JSON.stringify(payload) })
   const body = await response.json().catch(() => ({}))
-  if (!response.ok) throw new Error(body?.error || 'Falha ao conectar com o Open Finance.')
+  if (!response.ok) {
+    const message = body?.error ?? body?.message
+    throw new Error(typeof message === 'string' && message ? message : 'Falha ao conectar com o Open Finance.')
+  }
   return body as T
 }
 

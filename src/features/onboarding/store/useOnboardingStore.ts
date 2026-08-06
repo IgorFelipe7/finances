@@ -3,15 +3,24 @@ import { persist } from 'zustand/middleware'
 
 interface OnboardingState {
   hasSeenOnboarding: boolean
-  markSeen: () => void
+  active: boolean
+  step: number
+  open: () => void
+  setStep: (step: number) => void
+  finish: () => void
 }
 
 export const useOnboardingStore = create<OnboardingState>()(
   persist(
     (set) => ({
       hasSeenOnboarding: false,
-      markSeen: () => set({ hasSeenOnboarding: true }),
+      active: false,
+      step: 0,
+      open: () => set({ active: true, step: 0 }),
+      setStep: (step) => set({ step }),
+      finish: () => set({ hasSeenOnboarding: true, active: false }),
     }),
-    { name: 'onboarding' },
+    // `active`/`step` deliberately not persisted — only whether the user has ever finished it.
+    { name: 'onboarding', partialize: (state) => ({ hasSeenOnboarding: state.hasSeenOnboarding }) },
   ),
 )

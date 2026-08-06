@@ -32,7 +32,7 @@ export function DashboardPage() {
           <div className="lg:col-span-2">
             <CashFlowAreaChart />
           </div>
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             <CategoryDonutChart />
             <SavingsWidget />
           </div>

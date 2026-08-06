@@ -6,6 +6,8 @@ interface UIPreferencesState {
   setReduceMotion: (value: boolean) => void
   sidebarCollapsed: boolean
   setSidebarCollapsed: (value: boolean) => void
+  confirmAiTransactions: boolean
+  setConfirmAiTransactions: (value: boolean) => void
 }
 
 export const useUIPreferencesStore = create<UIPreferencesState>()(
@@ -15,6 +17,9 @@ export const useUIPreferencesStore = create<UIPreferencesState>()(
       setReduceMotion: (reduceMotion) => set({ reduceMotion }),
       sidebarCollapsed: false,
       setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
+      // Default true: matches the review-before-saving flow the app always had.
+      confirmAiTransactions: true,
+      setConfirmAiTransactions: (confirmAiTransactions) => set({ confirmAiTransactions }),
     }),
     { name: 'ui-preferences' },
   ),

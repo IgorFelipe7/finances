@@ -33,7 +33,7 @@ export function CategoryDonutChart() {
   const { slices, total } = useCategoryBreakdown()
 
   return (
-    <div className="glass-panel flex h-full flex-col rounded-xl p-5">
+    <div className="glass-panel flex flex-col rounded-xl p-5">
       <div className="mb-4">
         <h3 className="flex items-center gap-1.5 text-sm font-medium text-foreground">
           <PieChartIcon className="size-4 text-primary" />

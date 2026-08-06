@@ -1,4 +1,4 @@
-import { Bell, LogOut, Mail, Sparkles } from 'lucide-react'
+import { Bell, LogOut, Mail, ShieldCheck, Sparkles } from 'lucide-react'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -26,6 +26,8 @@ export function SettingsPage() {
   const user = useAuthStore((state) => state.user)
   const reduceMotion = useUIPreferencesStore((state) => state.reduceMotion)
   const setReduceMotion = useUIPreferencesStore((state) => state.setReduceMotion)
+  const confirmAiTransactions = useUIPreferencesStore((state) => state.confirmAiTransactions)
+  const setConfirmAiTransactions = useUIPreferencesStore((state) => state.setConfirmAiTransactions)
   const { data: pushEnabled = false, isLoading: pushStatusLoading } = usePushSubscriptionStatus()
   const enablePush = useEnablePushNotifications()
   const disablePush = useDisablePushNotifications()
@@ -83,6 +85,21 @@ export function SettingsPage() {
                 </p>
               </div>
               <Switch checked={reduceMotion} onCheckedChange={setReduceMotion} />
+            </div>
+
+            <div className="mt-3 flex items-center justify-between rounded-lg border border-white/10 px-3 py-2.5">
+              <div className="flex items-start gap-2">
+                <ShieldCheck className="mt-0.5 size-4 shrink-0 text-zinc-400" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Confirmar transações da IA</p>
+                  <p className="text-xs text-muted-foreground">
+                    {confirmAiTransactions
+                      ? 'Mostra uma tela de revisão antes de salvar o que a IA entendeu do texto ou recibo.'
+                      : 'Salva direto, sem revisão — mais rápido, mas confie no que a IA entendeu.'}
+                  </p>
+                </div>
+              </div>
+              <Switch checked={confirmAiTransactions} onCheckedChange={setConfirmAiTransactions} />
             </div>
 
             <div className="mt-3 flex items-center justify-between rounded-lg border border-white/10 px-3 py-2.5">

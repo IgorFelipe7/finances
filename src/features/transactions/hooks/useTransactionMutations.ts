@@ -46,6 +46,9 @@ export function useCreateTransaction() {
       queryClient.invalidateQueries({ queryKey: ['transactions'] })
       toast.success('Transação registrada com sucesso!')
     },
+    onError: (error) => {
+      toast.error(error.message || 'Não foi possível registrar a transação.')
+    },
   })
 }
 

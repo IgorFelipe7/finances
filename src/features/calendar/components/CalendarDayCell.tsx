@@ -9,70 +9,84 @@ interface CalendarDayCellProps {
   maxExpense: number
   isSelected: boolean
   onSelect: () => void
+  index: number
 }
 
-export function CalendarDayCell({ day, maxExpense, isSelected, onSelect }: CalendarDayCellProps) {
+export function CalendarDayCell({ day, maxExpense, isSelected, onSelect, index }: CalendarDayCellProps) {
   const heat = maxExpense > 0 ? Math.min(day.expense / maxExpense, 1) : 0
   const hasActivity = day.income > 0 || day.expense > 0
+  const isClickable = day.isCurrentMonth || day.entries.length > 0
 
   return (
-    <button
+    <motion.button
       type="button"
       onClick={onSelect}
-      disabled={!day.isCurrentMonth && day.entries.length === 0}
+      disabled={!isClickable}
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, delay: Math.min(index * 0.008, 0.25) }}
+      whileHover={isClickable ? { y: -2 } : undefined}
+      whileTap={isClickable ? { scale: 0.97 } : undefined}
       className={cn(
-        'group relative flex h-16 flex-col overflow-hidden rounded-lg border border-transparent p-1.5 text-left transition-colors sm:h-24 sm:p-2',
-        day.isCurrentMonth ? 'hover:border-white/10 hover:bg-white/[0.04]' : 'opacity-35',
-        isSelected && 'border-primary/50 bg-primary/10',
+        'group relative flex aspect-square flex-col overflow-hidden rounded-xl border border-white/[0.04] bg-white/[0.015] p-1.5 text-left transition-colors sm:aspect-auto sm:h-24 sm:p-2.5',
+        isClickable && 'hover:border-white/10 hover:bg-white/[0.05]',
+        !day.isCurrentMonth && 'opacity-30',
+        day.isToday && !isSelected && 'border-primary/30',
+        isSelected && 'border-primary/60 bg-primary/[0.08] ring-1 ring-primary/40',
       )}
     >
       {heat > 0 && (
         <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 bg-destructive/25"
-          style={{ height: `${8 + heat * 42}%` }}
+          className="pointer-events-none absolute -bottom-6 left-1/2 size-20 -translate-x-1/2 rounded-full bg-destructive blur-xl"
+          style={{ opacity: 0.1 + heat * 0.3 }}
         />
       )}
 
       <div className="relative flex items-center justify-between">
         <span
           className={cn(
-            'flex size-5 shrink-0 items-center justify-center rounded-full text-xs font-medium tabular-nums sm:size-6',
-            day.isToday ? 'bg-primary text-primary-foreground' : day.isWeekend ? 'text-zinc-500' : 'text-zinc-300',
+            'flex size-6 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold tabular-nums',
+            day.isToday
+              ? 'bg-gradient-to-br from-primary to-chart-5 text-primary-foreground shadow-lg shadow-primary/30'
+              : day.isWeekend
+                ? 'text-zinc-600'
+                : 'text-zinc-300',
           )}
         >
           {day.date.getDate()}
         </span>
+
         {day.hasOverdue && (
           <motion.span
             className="size-1.5 shrink-0 rounded-full bg-destructive"
-            animate={{ opacity: [1, 0.4, 1] }}
-            transition={{ duration: 1.4, repeat: Infinity }}
+            animate={{ opacity: [1, 0.35, 1] }}
+            transition={{ duration: 1.3, repeat: Infinity }}
           />
         )}
         {!day.hasOverdue && day.hasPending && <span className="size-1.5 shrink-0 rounded-full bg-chart-3" />}
       </div>
 
       {hasActivity && (
-        <div className="relative mt-auto hidden space-y-0.5 sm:block">
+        <div className="relative mt-auto hidden flex-wrap gap-1 sm:flex">
           {day.income > 0 && (
-            <p className="truncate text-[11px] font-medium tabular-nums text-positive">
+            <span className="rounded-full bg-positive/10 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-positive">
               +{compactNumberFormatter.format(day.income)}
-            </p>
+            </span>
           )}
           {day.expense > 0 && (
-            <p className="truncate text-[11px] font-medium tabular-nums text-destructive">
+            <span className="rounded-full bg-destructive/10 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-destructive">
               -{compactNumberFormatter.format(day.expense)}
-            </p>
+            </span>
           )}
         </div>
       )}
 
       {hasActivity && (
-        <div className="relative mt-auto flex gap-0.5 sm:hidden">
+        <div className="relative mt-auto flex gap-1 sm:hidden">
           {day.income > 0 && <span className="size-1.5 rounded-full bg-positive" />}
           {day.expense > 0 && <span className="size-1.5 rounded-full bg-destructive" />}
         </div>
       )}
-    </button>
+    </motion.button>
   )
 }

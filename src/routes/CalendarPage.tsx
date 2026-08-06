@@ -6,9 +6,11 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 import { CalendarGrid } from '@/features/calendar/components/CalendarGrid'
+import { DayAgendaPanel } from '@/features/calendar/components/DayAgendaPanel'
 import { DayDetailDialog } from '@/features/calendar/components/DayDetailDialog'
 import { buildCalendarGrid, type CalendarDay } from '@/features/calendar/lib/buildCalendarGrid'
 import { useTransactions } from '@/features/transactions/hooks/useTransactions'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { formatCurrency } from '@/lib/currency'
 import { formatMonthYear } from '@/lib/date'
 import { cn } from '@/lib/utils'
@@ -16,14 +18,22 @@ import { cn } from '@/lib/utils'
 export function CalendarPage() {
   const { data: transactions = [], isLoading } = useTransactions()
   const today = useMemo(() => new Date(), [])
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
+
   const [viewYear, setViewYear] = useState(today.getFullYear())
   const [viewMonth, setViewMonth] = useState(today.getMonth())
-  const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null)
+  const [direction, setDirection] = useState<1 | -1>(1)
+  const [selectedIso, setSelectedIso] = useState<string | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
 
   const days = useMemo(
     () => buildCalendarGrid(viewYear, viewMonth, transactions, today),
     [viewYear, viewMonth, transactions, today],
+  )
+
+  const activeDay: CalendarDay = useMemo(
+    () => days.find((d) => d.iso === selectedIso) ?? days.find((d) => d.isToday) ?? days[0],
+    [days, selectedIso],
   )
 
   const monthSummary = useMemo(() => {
@@ -34,20 +44,22 @@ export function CalendarPage() {
     return { income, expense, net: income - expense, pendingDays }
   }, [days])
 
-  function changeMonth(delta: number) {
+  function changeMonth(delta: 1 | -1) {
     const next = new Date(viewYear, viewMonth + delta, 1)
+    setDirection(delta)
     setViewYear(next.getFullYear())
     setViewMonth(next.getMonth())
   }
 
   function goToday() {
+    setDirection(viewYear * 12 + viewMonth > today.getFullYear() * 12 + today.getMonth() ? -1 : 1)
     setViewYear(today.getFullYear())
     setViewMonth(today.getMonth())
   }
 
   function handleSelectDay(day: CalendarDay) {
-    setSelectedDay(day)
-    setDetailOpen(true)
+    setSelectedIso(day.iso)
+    if (!isDesktop) setDetailOpen(true)
   }
 
   return (
@@ -130,36 +142,41 @@ export function CalendarPage() {
         {isLoading ? (
           <div className="glass-panel h-96 animate-pulse rounded-xl" />
         ) : (
-          <>
-            <CalendarGrid
-              days={days}
-              monthKey={`${viewYear}-${viewMonth}`}
-              selectedIso={selectedDay?.iso ?? null}
-              onSelectDay={handleSelectDay}
-            />
+          <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[1fr_320px]">
+            <div className="space-y-4">
+              <CalendarGrid
+                days={days}
+                monthKey={`${viewYear}-${viewMonth}`}
+                direction={direction}
+                selectedIso={activeDay.iso}
+                onSelectDay={handleSelectDay}
+              />
 
-            <div className="glass-panel flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl px-4 py-3 text-xs text-zinc-400">
-              <span className="flex items-center gap-1.5">
-                <span className="size-1.5 rounded-full bg-positive" /> Receita no dia
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="size-1.5 rounded-full bg-destructive" /> Despesa no dia
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="size-1.5 rounded-full bg-chart-3" /> Conta pendente
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="size-1.5 animate-pulse rounded-full bg-destructive" /> Atrasada
-              </span>
-              <span className="flex items-center gap-1.5">
-                <CalendarDays className="size-3.5" /> Sombra vermelha = intensidade do gasto no dia
-              </span>
+              <div className="glass-panel flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl px-4 py-3 text-xs text-zinc-400">
+                <span className="flex items-center gap-1.5">
+                  <span className="size-1.5 rounded-full bg-positive" /> Receita no dia
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="size-1.5 rounded-full bg-destructive" /> Despesa no dia
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="size-1.5 rounded-full bg-chart-3" /> Conta pendente
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="size-1.5 animate-pulse rounded-full bg-destructive" /> Atrasada
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <CalendarDays className="size-3.5" /> Sombra vermelha = intensidade do gasto no dia
+                </span>
+              </div>
             </div>
-          </>
+
+            <DayAgendaPanel day={activeDay} />
+          </div>
         )}
       </div>
 
-      <DayDetailDialog day={selectedDay} open={detailOpen} onOpenChange={setDetailOpen} />
+      <DayDetailDialog day={activeDay} open={detailOpen} onOpenChange={setDetailOpen} />
     </AppLayout>
   )
 }

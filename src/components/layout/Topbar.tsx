@@ -44,10 +44,10 @@ export function Topbar({ title }: TopbarProps) {
   }
 
   return (
-    <header className="flex items-center justify-between gap-4 border-b border-border px-4 py-4 md:px-8">
-      <h1 className="text-lg font-semibold text-foreground">{title}</h1>
+    <header className="flex items-center justify-between gap-2 border-b border-border px-4 py-4 sm:gap-4 md:px-8">
+      <h1 className="min-w-0 flex-1 truncate text-lg font-semibold text-foreground sm:flex-initial">{title}</h1>
 
-      <div className="flex items-center gap-3">
+      <div className="flex shrink-0 items-center gap-1 sm:gap-3">
         <Button
           type="button"
           variant="outline"
@@ -73,7 +73,7 @@ export function Topbar({ title }: TopbarProps) {
         <ThemeToggle />
 
         <Select value={selectedValue} onValueChange={handlePeriodChange}>
-          <SelectTrigger className="w-40">
+          <SelectTrigger className="w-24 sm:w-40">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

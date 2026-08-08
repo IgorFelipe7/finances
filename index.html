@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" class="dark">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -11,6 +11,22 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Finanças" />
     <title>Finanças</title>
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('ui-preferences')
+          var theme = stored ? JSON.parse(stored).state.theme : 'dark'
+          var resolved =
+            theme === 'system' || !theme
+              ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+              : theme
+          document.documentElement.classList.add(resolved)
+          document.documentElement.style.colorScheme = resolved
+        } catch (e) {
+          document.documentElement.classList.add('dark')
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

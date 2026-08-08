@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useCreateTransaction } from '@/features/transactions/hooks/useTransactionMutations'
 import type { Account } from '@/features/accounts/schemas/account.schema'
-import { formatCurrency } from '@/lib/currency'
+import { useMoneyFormatter } from '@/hooks/useMoneyFormatter'
 
 const savingsFormSchema = z.object({
   account_id: z.string().min(1, 'Selecione uma conta.'),
@@ -41,6 +41,7 @@ export function SavingsUpdateDialog({ accounts, balancesByAccountId, trigger }: 
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<Mode>('add')
   const createTransaction = useCreateTransaction()
+  const { formatMoney } = useMoneyFormatter()
 
   const form = useForm<SavingsFormInput>({
     resolver: zodResolver(savingsFormSchema),
@@ -179,8 +180,8 @@ export function SavingsUpdateDialog({ accounts, balancesByAccountId, trigger }: 
                   </FormControl>
                   <p className="text-xs text-muted-foreground">
                     {mode === 'add'
-                      ? `Guardado atualmente: ${formatCurrency(currentBalance)}`
-                      : `Isso vai lançar um ajuste de ${formatCurrency(field.value - currentBalance)}.`}
+                      ? `Guardado atualmente: ${formatMoney(currentBalance)}`
+                      : `Isso vai lançar um ajuste de ${formatMoney(field.value - currentBalance)}.`}
                   </p>
                   <FormMessage />
                 </FormItem>

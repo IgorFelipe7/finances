@@ -15,7 +15,7 @@ export function Sidebar() {
       <motion.aside
         animate={{ width: isCollapsed ? 72 : 248 }}
         transition={{ type: 'spring', stiffness: 380, damping: 34 }}
-        className="relative hidden shrink-0 flex-col overflow-hidden border-r border-white/10 bg-black/20 backdrop-blur-xl md:flex"
+        className="relative hidden shrink-0 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar/60 backdrop-blur-xl md:flex"
       >
         <div className="pointer-events-none absolute inset-x-0 top-0 h-56 overflow-hidden">
           <motion.div
@@ -49,7 +49,7 @@ export function Sidebar() {
                   className={({ isActive }) =>
                     cn(
                       'group relative flex items-center gap-3 overflow-hidden rounded-lg px-3 py-2.5 text-sm transition-transform active:scale-[0.98]',
-                      !isActive && 'hover:bg-white/5',
+                      !isActive && 'hover:bg-accent/60',
                     )
                   }
                 >
@@ -65,14 +65,14 @@ export function Sidebar() {
                       <item.icon
                         className={cn(
                           'relative z-10 size-4 shrink-0 transition-transform duration-150 group-hover:scale-110',
-                          isActive ? 'text-primary-foreground' : 'text-zinc-400 group-hover:text-foreground',
+                          isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-foreground',
                         )}
                       />
                       {!isCollapsed && (
                         <span
                           className={cn(
                             'relative z-10 whitespace-nowrap',
-                            isActive ? 'text-primary-foreground' : 'text-zinc-400 group-hover:text-foreground',
+                            isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-foreground',
                           )}
                         >
                           {item.label}
@@ -106,7 +106,7 @@ export function Sidebar() {
           <button
             type="button"
             onClick={() => setSidebarCollapsed(!isCollapsed)}
-            className="flex shrink-0 items-center justify-center gap-2 overflow-hidden border-t border-white/10 px-4 py-3 text-xs text-zinc-400 transition-colors hover:text-foreground"
+            className="flex shrink-0 items-center justify-center gap-2 overflow-hidden border-t border-sidebar-border px-4 py-3 text-xs text-muted-foreground transition-colors hover:text-foreground"
           >
             <ChevronLeft
               className={cn(

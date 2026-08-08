@@ -41,7 +41,7 @@ import { useCancelRecurrence } from '@/features/transactions/hooks/useTransactio
 import { useTransactions } from '@/features/transactions/hooks/useTransactions'
 import { formatRecurrenceRuleLabel, nextOccurrenceForTransaction } from '@/features/transactions/lib/recurrenceRule'
 import type { Transaction } from '@/features/transactions/schemas/transaction.schema'
-import { formatCurrency } from '@/lib/currency'
+import { useMoneyFormatter } from '@/hooks/useMoneyFormatter'
 import { addMonthsToIsoDate } from '@/lib/date'
 import { cn } from '@/lib/utils'
 
@@ -76,6 +76,7 @@ function FixedExpenseRow({
 }) {
   const [cancelOpen, setCancelOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
+  const { formatMoney } = useMoneyFormatter()
   const meta = TRANSACTION_TYPE_META[transaction.transaction_type]
   const cancelRecurrence = useCancelRecurrence()
   const nextCharge = nextOccurrenceForTransaction(transaction)
@@ -91,15 +92,15 @@ function FixedExpenseRow({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, delay: Math.min(index * 0.03, 0.3) }}
-      className="group flex items-center gap-4 rounded-xl px-3 py-3 transition-colors hover:bg-white/5"
+      className="group flex items-center gap-4 rounded-xl px-3 py-3 transition-colors hover:bg-accent/60"
     >
-      <span className={cn('flex size-9 shrink-0 items-center justify-center rounded-full bg-white/5', meta.colorClass)}>
+      <span className={cn('flex size-9 shrink-0 items-center justify-center rounded-full bg-muted', meta.colorClass)}>
         <meta.icon className="size-4.5" />
       </span>
 
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-foreground">{transaction.title}</p>
-        <p className="truncate text-xs text-zinc-400">
+        <p className="truncate text-xs text-muted-foreground">
           {accountName}
           {transaction.category ? ` · ${transaction.category}` : ''}
         </p>
@@ -110,7 +111,7 @@ function FixedExpenseRow({
           <Repeat className="size-3" />
           {isInstallment ? `Parcela ${transaction.installment_current}/${transaction.installments_total}` : recurrenceLabel}
         </Badge>
-        <span className="text-xs text-zinc-400">
+        <span className="text-xs text-muted-foreground">
           próx. {formatShortDate(nextCharge)}
           {isInstallment ? ` · faltam ${remainingInstallments}` : ''}
         </span>
@@ -123,7 +124,7 @@ function FixedExpenseRow({
         )}
       >
         {transaction.transaction_type === 'income' ? '+' : '-'}
-        {formatCurrency(transaction.amount)}
+        {formatMoney(transaction.amount)}
       </p>
 
       {!transaction.is_paid && (
@@ -149,7 +150,7 @@ function FixedExpenseRow({
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="shrink-0 text-zinc-500 transition-colors hover:text-foreground data-[state=open]:text-foreground"
+            className="shrink-0 text-muted-foreground transition-colors hover:text-foreground data-[state=open]:text-foreground"
             aria-label="Opções do gasto fixo"
           >
             <MoreVertical className="size-4" />
@@ -218,9 +219,9 @@ function FixedExpenseSection({
       <h2 className="px-1 text-sm font-medium text-foreground">{title}</h2>
       <div className="glass-panel rounded-xl p-2">
         {transactions.length === 0 ? (
-          <p className="p-6 text-center text-sm text-zinc-400">{emptyLabel}</p>
+          <p className="p-6 text-center text-sm text-muted-foreground">{emptyLabel}</p>
         ) : (
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-border">
             {transactions.map((transaction, index) => (
               <FixedExpenseRow
                 key={transaction.id}
@@ -245,6 +246,7 @@ interface UpcomingCharge {
 }
 
 function UpcomingChargesTimeline({ charges }: { charges: UpcomingCharge[] }) {
+  const { formatMoney } = useMoneyFormatter()
   if (charges.length === 0) return null
 
   return (
@@ -263,17 +265,17 @@ function UpcomingChargesTimeline({ charges }: { charges: UpcomingCharge[] }) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: index * 0.04 }}
               className={cn(
-                'flex w-36 shrink-0 flex-col gap-2 rounded-lg border-l-2 bg-white/[0.03] p-3',
+                'flex w-36 shrink-0 flex-col gap-2 rounded-lg border-l-2 bg-muted/40 p-3',
                 charge.type === 'income' ? 'border-l-positive' : 'border-l-destructive',
               )}
             >
               <div className="flex items-baseline gap-1">
                 <span className="text-lg font-bold text-foreground">{date.getDate()}</span>
-                <span className="text-xs text-zinc-400 capitalize">
+                <span className="text-xs text-muted-foreground capitalize">
                   {date.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}
                 </span>
               </div>
-              <p className="truncate text-xs font-medium text-zinc-300">{charge.title}</p>
+              <p className="truncate text-xs font-medium text-foreground/80">{charge.title}</p>
               <p
                 className={cn(
                   'text-sm font-semibold tabular-nums',
@@ -281,7 +283,7 @@ function UpcomingChargesTimeline({ charges }: { charges: UpcomingCharge[] }) {
                 )}
               >
                 {charge.type === 'income' ? '+' : '-'}
-                {formatCurrency(charge.amount)}
+                {formatMoney(charge.amount)}
               </p>
             </motion.div>
           )
@@ -294,6 +296,7 @@ function UpcomingChargesTimeline({ charges }: { charges: UpcomingCharge[] }) {
 export function FixedExpensesPage() {
   const { data: transactions = [], isLoading } = useTransactions()
   const { data: accounts = [] } = useAccounts()
+  const { formatMoney } = useMoneyFormatter()
 
   const accountsById = useMemo(() => new Map(accounts.map((account) => [account.id, account])), [accounts])
 
@@ -331,7 +334,7 @@ export function FixedExpensesPage() {
     <AppLayout title="Gastos Fixos">
       <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="max-w-xl text-sm text-zinc-400">
+          <p className="max-w-xl text-sm text-muted-foreground">
             Cadastre uma vez — na mão ou pela IA — e o lançamento entra sozinho todo mês, sem precisar digitar de
             novo. Ele continua aparecendo até você parar a recorrência.
           </p>
@@ -348,9 +351,9 @@ export function FixedExpensesPage() {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-            <Card className="border border-white/10 bg-black/40 backdrop-blur-xl">
+            <Card className="glass-panel">
               <CardHeader>
-                <CardDescription className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-zinc-400 uppercase">
+                <CardDescription className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                   <TrendingDown className="size-3.5 text-destructive" />
                   Despesas Fixas / Mês
                 </CardDescription>
@@ -358,7 +361,7 @@ export function FixedExpensesPage() {
               <CardContent>
                 <AnimatedNumber
                   value={totalFixedExpenses}
-                  formatter={formatCurrency}
+                  formatter={formatMoney}
                   className="text-2xl font-bold text-destructive"
                 />
               </CardContent>
@@ -370,9 +373,9 @@ export function FixedExpensesPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.05 }}
           >
-            <Card className="border border-white/10 bg-black/40 backdrop-blur-xl">
+            <Card className="glass-panel">
               <CardHeader>
-                <CardDescription className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-zinc-400 uppercase">
+                <CardDescription className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                   <TrendingUp className="size-3.5 text-positive" />
                   Receitas Fixas / Mês
                 </CardDescription>
@@ -380,7 +383,7 @@ export function FixedExpensesPage() {
               <CardContent>
                 <AnimatedNumber
                   value={totalFixedIncomes}
-                  formatter={formatCurrency}
+                  formatter={formatMoney}
                   className="text-2xl font-bold text-positive"
                 />
               </CardContent>
@@ -392,9 +395,9 @@ export function FixedExpensesPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
           >
-            <Card className="border border-white/10 bg-black/40 backdrop-blur-xl">
+            <Card className="glass-panel">
               <CardHeader>
-                <CardDescription className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-zinc-400 uppercase">
+                <CardDescription className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                   <Wallet className="size-3.5 text-primary" />
                   Impacto Líquido Fixo
                 </CardDescription>
@@ -402,7 +405,7 @@ export function FixedExpensesPage() {
               <CardContent>
                 <AnimatedNumber
                   value={netFixedImpact}
-                  formatter={formatCurrency}
+                  formatter={formatMoney}
                   className={cn('text-2xl font-bold', netFixedImpact >= 0 ? 'text-positive' : 'text-destructive')}
                 />
               </CardContent>
@@ -413,7 +416,7 @@ export function FixedExpensesPage() {
         {isLoading ? (
           <div className="glass-panel space-y-2 rounded-xl p-4">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="h-14 animate-pulse rounded-xl bg-white/5" />
+              <div key={i} className="h-14 animate-pulse rounded-xl bg-muted" />
             ))}
           </div>
         ) : (

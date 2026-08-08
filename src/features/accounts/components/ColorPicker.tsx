@@ -22,7 +22,7 @@ export function ColorPicker({ value, onChange, disabled }: ColorPickerProps) {
           aria-label={`Selecionar cor ${color}`}
           aria-pressed={value === color}
           className={cn(
-            'flex size-7 shrink-0 items-center justify-center rounded-full ring-1 ring-white/10 transition-transform hover:scale-110 disabled:pointer-events-none disabled:opacity-50',
+            'flex size-7 shrink-0 items-center justify-center rounded-full ring-1 ring-border transition-transform hover:scale-110 disabled:pointer-events-none disabled:opacity-50',
             value === color && 'ring-2 ring-foreground ring-offset-2 ring-offset-popover',
           )}
           style={{ backgroundColor: color }}
@@ -33,7 +33,7 @@ export function ColorPicker({ value, onChange, disabled }: ColorPickerProps) {
 
       <label
         className={cn(
-          'relative flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full bg-[conic-gradient(from_0deg,red,yellow,lime,cyan,blue,magenta,red)] ring-1 ring-white/10 transition-transform hover:scale-110',
+          'relative flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full bg-[conic-gradient(from_0deg,red,yellow,lime,cyan,blue,magenta,red)] ring-1 ring-border transition-transform hover:scale-110',
           isCustom && 'ring-2 ring-foreground ring-offset-2 ring-offset-popover',
         )}
         title="Cor personalizada"

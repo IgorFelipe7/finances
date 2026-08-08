@@ -8,36 +8,37 @@ import { AccountFormDialog } from '@/features/accounts/components/AccountFormDia
 import { SavingsUpdateDialog } from '@/features/accounts/components/SavingsUpdateDialog'
 import { useAccountBalances } from '@/features/accounts/hooks/useAccountBalances'
 import { useFinancialSnapshot } from '@/features/dashboard/hooks/useFinancialSnapshot'
-import { formatCurrency } from '@/lib/currency'
+import { useMoneyFormatter } from '@/hooks/useMoneyFormatter'
 
 export function SavingsWidget() {
   const { accountBalances } = useAccountBalances()
   const { snapshot } = useFinancialSnapshot()
+  const { formatMoney } = useMoneyFormatter()
 
   const savings = useMemo(() => accountBalances.filter(({ account }) => account.type === 'savings'), [accountBalances])
   const totalSaved = savings.reduce((sum, { balance }) => sum + balance, 0)
   const balancesByAccountId = useMemo(() => new Map(savings.map(({ account, balance }) => [account.id, balance])), [savings])
 
   return (
-    <Card className="border border-white/10 bg-black/40 backdrop-blur-xl">
+    <Card className="glass-panel">
       <CardHeader>
-        <CardDescription className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-zinc-400 uppercase">
+        <CardDescription className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
           <PiggyBank className="size-3.5 text-primary" />
           Guardado
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <AnimatedNumber value={totalSaved} formatter={formatCurrency} className="text-2xl font-bold text-foreground" />
+        <AnimatedNumber value={totalSaved} formatter={formatMoney} className="text-2xl font-bold text-foreground" />
 
         {savings.length > 1 && (
           <ul className="space-y-1">
             {savings.map(({ account, balance }) => (
-              <li key={account.id} className="flex items-center justify-between text-xs text-zinc-400">
+              <li key={account.id} className="flex items-center justify-between text-xs text-muted-foreground">
                 <span className="flex items-center gap-1.5">
                   <span className="size-1.5 rounded-full" style={{ backgroundColor: account.color }} />
                   {account.name}
                 </span>
-                <span className="tabular-nums text-zinc-300">{formatCurrency(balance)}</span>
+                <span className="tabular-nums text-foreground/80">{formatMoney(balance)}</span>
               </li>
             ))}
           </ul>
@@ -50,7 +51,7 @@ export function SavingsWidget() {
             className="flex items-start gap-1.5 rounded-lg bg-primary/10 px-2.5 py-2 text-xs text-primary"
           >
             <Sparkles className="mt-0.5 size-3 shrink-0" />
-            Dá pra guardar ~{formatCurrency(snapshot.recommendedSavings)} este mês sem apertar o orçamento.
+            Dá pra guardar ~{formatMoney(snapshot.recommendedSavings)} este mês sem apertar o orçamento.
           </motion.p>
         )}
 

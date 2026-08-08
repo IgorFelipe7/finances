@@ -115,13 +115,13 @@ export function OnboardingWizard() {
             {steps.map((_, index) => (
               <span
                 key={index}
-                className={cn('h-1.5 rounded-full transition-all', index === step ? 'w-5 bg-primary' : 'w-1.5 bg-white/15')}
+                className={cn('h-1.5 rounded-full transition-all', index === step ? 'w-5 bg-primary' : 'w-1.5 bg-muted')}
               />
             ))}
           </div>
 
           {step < steps.length - 1 && (
-            <button type="button" onClick={finish} className="mt-4 text-xs text-zinc-500 hover:text-zinc-300">
+            <button type="button" onClick={finish} className="mt-4 text-xs text-muted-foreground hover:text-foreground">
               Pular apresentação
             </button>
           )}

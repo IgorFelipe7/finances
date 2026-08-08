@@ -11,12 +11,13 @@ import { DayDetailDialog } from '@/features/calendar/components/DayDetailDialog'
 import { buildCalendarGrid, type CalendarDay } from '@/features/calendar/lib/buildCalendarGrid'
 import { useTransactions } from '@/features/transactions/hooks/useTransactions'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
-import { formatCurrency } from '@/lib/currency'
+import { useMoneyFormatter } from '@/hooks/useMoneyFormatter'
 import { formatMonthYear } from '@/lib/date'
 import { cn } from '@/lib/utils'
 
 export function CalendarPage() {
   const { data: transactions = [], isLoading } = useTransactions()
+  const { formatMoney } = useMoneyFormatter()
   const today = useMemo(() => new Date(), [])
   const isDesktop = useMediaQuery('(min-width: 1024px)')
 
@@ -66,12 +67,12 @@ export function CalendarPage() {
     <AppLayout title="Calendário">
       <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="max-w-xl text-sm text-zinc-400">
+          <p className="max-w-xl text-sm text-muted-foreground">
             Veja onde cada real entra e sai, dia a dia — incluindo contas fixas e parceladas futuras, já na data
             certa em que elas caem.
           </p>
           <div className="flex shrink-0 items-center gap-2">
-            <Button type="button" variant="ghost" size="sm" onClick={goToday} className="text-zinc-400">
+            <Button type="button" variant="ghost" size="sm" onClick={goToday} className="text-muted-foreground">
               Hoje
             </Button>
             <Button type="button" variant="outline" size="icon" onClick={() => changeMonth(-1)} aria-label="Mês anterior">
@@ -88,37 +89,37 @@ export function CalendarPage() {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-            <Card className="border border-white/10 bg-black/40 backdrop-blur-xl">
+            <Card className="glass-panel">
               <CardHeader>
-                <CardDescription className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-zinc-400 uppercase">
+                <CardDescription className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                   <TrendingUp className="size-3.5 text-positive" />
                   Receitas do Mês
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <AnimatedNumber value={monthSummary.income} formatter={formatCurrency} className="text-2xl font-bold text-positive" />
+                <AnimatedNumber value={monthSummary.income} formatter={formatMoney} className="text-2xl font-bold text-positive" />
               </CardContent>
             </Card>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }}>
-            <Card className="border border-white/10 bg-black/40 backdrop-blur-xl">
+            <Card className="glass-panel">
               <CardHeader>
-                <CardDescription className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-zinc-400 uppercase">
+                <CardDescription className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                   <TrendingDown className="size-3.5 text-destructive" />
                   Despesas do Mês
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <AnimatedNumber value={monthSummary.expense} formatter={formatCurrency} className="text-2xl font-bold text-destructive" />
+                <AnimatedNumber value={monthSummary.expense} formatter={formatMoney} className="text-2xl font-bold text-destructive" />
               </CardContent>
             </Card>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
-            <Card className="border border-white/10 bg-black/40 backdrop-blur-xl">
+            <Card className="glass-panel">
               <CardHeader>
-                <CardDescription className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-zinc-400 uppercase">
+                <CardDescription className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                   <Wallet className="size-3.5 text-primary" />
                   Saldo do Mês
                 </CardDescription>
@@ -126,11 +127,11 @@ export function CalendarPage() {
               <CardContent>
                 <AnimatedNumber
                   value={monthSummary.net}
-                  formatter={formatCurrency}
+                  formatter={formatMoney}
                   className={cn('text-2xl font-bold', monthSummary.net >= 0 ? 'text-positive' : 'text-destructive')}
                 />
                 {monthSummary.pendingDays > 0 && (
-                  <p className="mt-1 text-xs text-zinc-400">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     {monthSummary.pendingDays} dia{monthSummary.pendingDays > 1 ? 's' : ''} com conta pendente
                   </p>
                 )}
@@ -152,7 +153,7 @@ export function CalendarPage() {
                 onSelectDay={handleSelectDay}
               />
 
-              <div className="glass-panel flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl px-4 py-3 text-xs text-zinc-400">
+              <div className="glass-panel flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl px-4 py-3 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1.5">
                   <span className="size-1.5 rounded-full bg-positive" /> Receita no dia
                 </span>

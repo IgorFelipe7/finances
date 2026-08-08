@@ -121,7 +121,7 @@ export function SmartInput() {
           }}
           disabled={busy}
           placeholder="Ex: Paguei 80 de pizza no Nubank..."
-          className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-zinc-400 disabled:opacity-50"
+          className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground disabled:opacity-50"
         />
         <button
           type="button"
@@ -129,7 +129,7 @@ export function SmartInput() {
           disabled={busy}
           aria-label="Escanear recibo com a câmera"
           title="Escanear recibo"
-          className="shrink-0 text-zinc-400 transition-colors hover:text-primary disabled:pointer-events-none disabled:opacity-50"
+          className="shrink-0 text-muted-foreground transition-colors hover:text-primary disabled:pointer-events-none disabled:opacity-50"
         >
           {isScanning ? <Loader2 className="size-5 animate-spin text-primary" /> : <Camera className="size-5" />}
         </button>

@@ -30,7 +30,7 @@ import {
 import { useAccounts } from '@/features/accounts/hooks/useAccounts'
 import type { Account } from '@/features/accounts/schemas/account.schema'
 import { useCreateTransaction } from '@/features/transactions/hooks/useTransactionMutations'
-import { formatCurrency } from '@/lib/currency'
+import { useMoneyFormatter } from '@/hooks/useMoneyFormatter'
 
 const payInvoiceFormSchema = z.object({
   origin_account_id: z.string().min(1, 'Selecione a conta de origem.'),
@@ -53,6 +53,7 @@ export function PayInvoiceDialog({ card, invoiceAmount, trigger }: PayInvoiceDia
   const [open, setOpen] = useState(false)
   const { data: accounts = [] } = useAccounts()
   const createTransaction = useCreateTransaction()
+  const { formatMoney } = useMoneyFormatter()
 
   const payableAccounts = accounts.filter((account) => account.type !== 'credit_card' && account.id !== card.id)
 
@@ -148,7 +149,7 @@ export function PayInvoiceDialog({ card, invoiceAmount, trigger }: PayInvoiceDia
                     />
                   </FormControl>
                   <p className="text-xs text-muted-foreground">
-                    Fatura atual: {formatCurrency(invoiceAmount)}. Ajuste para um pagamento parcial se necessário.
+                    Fatura atual: {formatMoney(invoiceAmount)}. Ajuste para um pagamento parcial se necessário.
                   </p>
                   <FormMessage />
                 </FormItem>

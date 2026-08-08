@@ -27,7 +27,7 @@ export function BankConnectionsPanel() {
   const disconnectConnection = useDisconnectBankConnection()
 
   return (
-    <Card className="border border-white/10 bg-black/40 backdrop-blur-xl">
+    <Card className="glass-panel">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Landmark className="size-4 text-primary" />
@@ -40,14 +40,14 @@ export function BankConnectionsPanel() {
           connections.map((connection) => (
             <div
               key={connection.id}
-              className="flex items-center justify-between gap-3 rounded-lg border border-white/10 px-3 py-2.5"
+              className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2.5"
             >
               <div className="flex min-w-0 items-center gap-3">
                 {connection.connector_image_url ? (
                   <img
                     src={connection.connector_image_url}
                     alt=""
-                    className="size-8 shrink-0 rounded-full bg-white/5 object-contain p-1"
+                    className="size-8 shrink-0 rounded-full bg-muted object-contain p-1"
                   />
                 ) : (
                   <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
@@ -56,7 +56,7 @@ export function BankConnectionsPanel() {
                 )}
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-foreground">{connection.connector_name}</p>
-                  <p className="text-xs text-zinc-400">{formatSyncedAt(connection.last_synced_at)}</p>
+                  <p className="text-xs text-muted-foreground">{formatSyncedAt(connection.last_synced_at)}</p>
                 </div>
               </div>
 
@@ -79,7 +79,7 @@ export function BankConnectionsPanel() {
                       variant="ghost"
                       size="icon-sm"
                       aria-label="Desconectar banco"
-                      className="text-zinc-500 hover:text-destructive"
+                      className="text-muted-foreground hover:text-destructive"
                     >
                       <Unlink className="size-4" />
                     </Button>

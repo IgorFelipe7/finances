@@ -12,20 +12,20 @@ import { computeHealthScore } from '@/features/economia/lib/financialHealthScore
 import { GoalCard } from '@/features/goals/components/GoalCard'
 import { GoalFormDialog } from '@/features/goals/components/GoalFormDialog'
 import { useGoals } from '@/features/goals/hooks/useGoals'
-import { formatCurrency } from '@/lib/currency'
+import { useMoneyFormatter } from '@/hooks/useMoneyFormatter'
 import { cn } from '@/lib/utils'
 
 function FactorRow({ label, detail, points, maxPoints, ok }: { label: string; detail: string; points: number; maxPoints: number; ok: boolean }) {
   return (
     <div className="flex items-center gap-3">
-      <span className={cn('flex size-6 shrink-0 items-center justify-center rounded-full', ok ? 'bg-positive/15 text-positive' : 'bg-white/5 text-zinc-500')}>
+      <span className={cn('flex size-6 shrink-0 items-center justify-center rounded-full', ok ? 'bg-positive/15 text-positive' : 'bg-muted text-muted-foreground')}>
         {ok ? <Check className="size-3.5" /> : <X className="size-3.5" />}
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-sm text-foreground">{label}</p>
-        <p className="truncate text-xs text-zinc-400">{detail}</p>
+        <p className="truncate text-xs text-muted-foreground">{detail}</p>
       </div>
-      <span className="shrink-0 text-xs tabular-nums text-zinc-400">
+      <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
         {points}/{maxPoints}
       </span>
     </div>
@@ -37,6 +37,7 @@ export function EconomiaPage() {
   const { tip, isLoading: tipLoading, isFetching: tipFetching, refetch: refetchTip } = useSavingsCoachTip()
   const { data: goals = [] } = useGoals()
   const { accountBalances } = useAccountBalances()
+  const { formatMoney, maskText } = useMoneyFormatter()
 
   const balancesByAccountId = useMemo(
     () => new Map(accountBalances.map(({ account, balance }) => [account.id, balance])),
@@ -66,7 +67,7 @@ export function EconomiaPage() {
   return (
     <AppLayout title="Economia">
       <div className="space-y-6">
-        <p className="max-w-2xl text-sm text-zinc-400">
+        <p className="max-w-2xl text-sm text-muted-foreground">
           Sua saúde financeira calculada a partir dos seus números reais, mais dicas práticas de economia e
           investimento pra você aplicar no seu ritmo.
         </p>
@@ -81,7 +82,7 @@ export function EconomiaPage() {
           <div className="w-full flex-1 space-y-3">
             <div>
               <h2 className="text-sm font-medium text-foreground">Saúde Financeira</h2>
-              <p className="text-xs text-zinc-400">Recalculada em tempo real a partir das suas contas e despesas.</p>
+              <p className="text-xs text-muted-foreground">Recalculada em tempo real a partir das suas contas e despesas.</p>
             </div>
             <div className="space-y-2.5">
               {health.factors.map((factor) => (
@@ -103,14 +104,14 @@ export function EconomiaPage() {
               <Sparkles className="size-5" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-primary">{tip.headline}</p>
-              <p className="mt-1 text-sm text-zinc-300">{tip.message}</p>
+              <p className="text-sm font-semibold text-primary">{maskText(tip.headline)}</p>
+              <p className="mt-1 text-sm text-foreground/80">{maskText(tip.message)}</p>
             </div>
             <Button
               type="button"
               variant="ghost"
               size="icon-sm"
-              className="shrink-0 text-zinc-500 hover:text-foreground"
+              className="shrink-0 text-muted-foreground hover:text-foreground"
               onClick={() => refetchTip()}
               disabled={tipFetching}
               aria-label="Gerar outra dica"
@@ -131,12 +132,12 @@ export function EconomiaPage() {
               <Shield className="size-4 text-primary" />
               Reserva de Emergência
             </h3>
-            <p className="text-2xl font-bold text-foreground">{formatCurrency(snapshot.totalSaved)}</p>
-            <p className="text-xs text-zinc-400">
+            <p className="text-2xl font-bold text-foreground">{formatMoney(snapshot.totalSaved)}</p>
+            <p className="text-xs text-muted-foreground">
               {health.emergencyFundMonths.toFixed(1)} de 6 meses de despesas cobertos (~
-              {formatCurrency(health.monthlyExpenseEstimate)}/mês)
+              {formatMoney(health.monthlyExpenseEstimate)}/mês)
             </p>
-            <div className="h-2 overflow-hidden rounded-full bg-white/5">
+            <div className="h-2 overflow-hidden rounded-full bg-muted">
               <motion.div
                 className="h-full rounded-full bg-primary"
                 initial={{ width: 0 }}
@@ -144,7 +145,7 @@ export function EconomiaPage() {
                 transition={{ duration: 1, ease: 'easeOut' }}
               />
             </div>
-            <p className="text-xs leading-relaxed text-zinc-500">
+            <p className="text-xs leading-relaxed text-muted-foreground">
               A recomendação padrão é guardar de 3 a 6 meses de despesas em algo de baixo risco e resgate rápido
               (ex: Tesouro Selic ou CDB com liquidez diária) antes de investir em renda variável.
             </p>
@@ -160,11 +161,11 @@ export function EconomiaPage() {
               <Target className="size-4 text-primary" />
               Meta 20% (regra 50/30/20)
             </h3>
-            <p className="text-2xl font-bold text-foreground">{formatCurrency(snapshot.recommendedSavings)}</p>
-            <p className="text-xs text-zinc-400">
-              de uma meta de {formatCurrency(savingsGoalMonthly)}/mês (20% da sua renda confirmada)
+            <p className="text-2xl font-bold text-foreground">{formatMoney(snapshot.recommendedSavings)}</p>
+            <p className="text-xs text-muted-foreground">
+              de uma meta de {formatMoney(savingsGoalMonthly)}/mês (20% da sua renda confirmada)
             </p>
-            <div className="h-2 overflow-hidden rounded-full bg-white/5">
+            <div className="h-2 overflow-hidden rounded-full bg-muted">
               <motion.div
                 className="h-full rounded-full bg-primary"
                 initial={{ width: 0 }}
@@ -172,7 +173,7 @@ export function EconomiaPage() {
                 transition={{ duration: 1, ease: 'easeOut' }}
               />
             </div>
-            <p className="text-xs leading-relaxed text-zinc-500">
+            <p className="text-xs leading-relaxed text-muted-foreground">
               A regra 50/30/20 sugere 50% da renda pra necessidades, 30% pra desejos e 20% pra reserva/investimento
               — é um ponto de partida flexível, não uma lei fixa.
             </p>
@@ -192,7 +193,7 @@ export function EconomiaPage() {
               </span>
               <div>
                 <p className="text-sm font-medium text-foreground">Nenhuma meta ainda</p>
-                <p className="mt-1 text-sm text-zinc-400">
+                <p className="mt-1 text-sm text-muted-foreground">
                   Crie uma reserva com objetivo — viagem, compra grande, o que for — e acompanhe o progresso.
                 </p>
               </div>
@@ -219,7 +220,7 @@ export function EconomiaPage() {
 
         <TipsGrid />
 
-        <div className="glass-panel flex items-start gap-2.5 rounded-xl p-4 text-xs text-zinc-500">
+        <div className="glass-panel flex items-start gap-2.5 rounded-xl p-4 text-xs text-muted-foreground">
           <PiggyBank className="mt-0.5 size-3.5 shrink-0" />
           <p>
             Conteúdo educativo geral — não é recomendação de investimento personalizada. Para decisões específicas,

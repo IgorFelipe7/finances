@@ -17,7 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { computeMonthlyRetrospective, computeYearlyRetrospective } from '@/features/dashboard/lib/computeRetrospective'
 import { useTransactions } from '@/features/transactions/hooks/useTransactions'
-import { formatCurrency, formatCompactCurrency } from '@/lib/currency'
+import { useMoneyFormatter } from '@/hooks/useMoneyFormatter'
 import { cn } from '@/lib/utils'
 
 type Period = 'month' | 'year'
@@ -41,16 +41,16 @@ function StatCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.1 + index * 0.06 }}
     >
-      <Card className="h-full border border-white/10 bg-black/40 backdrop-blur-xl">
+      <Card className="glass-panel h-full">
         <CardHeader>
-          <CardDescription className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-zinc-400 uppercase">
+          <CardDescription className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
             <Icon className="size-3.5 text-primary" />
             {label}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <p className="truncate text-xl font-bold text-foreground">{value}</p>
-          {detail && <p className="mt-1 truncate text-xs text-zinc-400">{detail}</p>}
+          {detail && <p className="mt-1 truncate text-xs text-muted-foreground">{detail}</p>}
         </CardContent>
       </Card>
     </motion.div>
@@ -58,21 +58,23 @@ function StatCard({
 }
 
 function MonthlyBarTooltip({ active, payload, label }: TooltipContentProps) {
+  const { formatMoney } = useMoneyFormatter()
   if (!active || !payload?.length) return null
   const income = payload.find((entry) => entry.dataKey === 'income')?.value ?? 0
   const expense = payload.find((entry) => entry.dataKey === 'expense')?.value ?? 0
 
   return (
-    <div className="min-w-40 rounded-lg border border-white/10 bg-black/80 p-3 text-xs shadow-2xl backdrop-blur-xl">
+    <div className="min-w-40 rounded-lg border border-border bg-popover p-3 text-xs shadow-2xl backdrop-blur-xl">
       <p className="mb-1.5 font-medium text-foreground">{label}</p>
-      <p className="text-positive">Receitas: {formatCurrency(Number(income))}</p>
-      <p className="text-destructive">Despesas: {formatCurrency(Number(expense))}</p>
+      <p className="text-positive">Receitas: {formatMoney(Number(income))}</p>
+      <p className="text-destructive">Despesas: {formatMoney(Number(expense))}</p>
     </div>
   )
 }
 
 export function RetrospectivePage() {
   const { data: transactions = [], isLoading } = useTransactions()
+  const { formatMoney, formatMoneyCompact } = useMoneyFormatter()
   const [period, setPeriod] = useState<Period>('month')
   const [year, setYear] = useState(() => new Date().getFullYear())
 
@@ -86,7 +88,7 @@ export function RetrospectivePage() {
     <AppLayout title="Retrospectiva">
       <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="max-w-xl text-sm text-zinc-400">
+          <p className="max-w-xl text-sm text-muted-foreground">
             Um resumo do seu período — maior categoria, maior gasto, e como esse período se compara.
           </p>
 
@@ -137,7 +139,7 @@ export function RetrospectivePage() {
                   netIsPositive ? 'bg-positive/10' : 'bg-destructive/10',
                 )}
               />
-              <span className="relative flex items-center justify-center gap-1.5 text-xs font-medium tracking-wide text-zinc-400 uppercase">
+              <span className="relative flex items-center justify-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                 <Sparkles className="size-3.5 text-primary" />
                 {period === 'month' ? monthly.periodLabel : yearly.periodLabel}
               </span>
@@ -148,9 +150,9 @@ export function RetrospectivePage() {
                 )}
               >
                 {netIsPositive ? '+' : ''}
-                {formatCurrency(stats.net)}
+                {formatMoney(stats.net)}
               </p>
-              <p className="relative mt-2 text-sm text-zinc-400">
+              <p className="relative mt-2 text-sm text-muted-foreground">
                 {netIsPositive ? 'guardado / sobrando no período' : 'a mais gasto do que entrou no período'}
               </p>
 
@@ -175,19 +177,19 @@ export function RetrospectivePage() {
             </motion.div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <StatCard icon={TrendingUp} label="Receitas" value={formatCurrency(stats.totalIncome)} index={0} />
-              <StatCard icon={TrendingDown} label="Despesas" value={formatCurrency(stats.totalExpenses)} index={1} />
+              <StatCard icon={TrendingUp} label="Receitas" value={formatMoney(stats.totalIncome)} index={0} />
+              <StatCard icon={TrendingDown} label="Despesas" value={formatMoney(stats.totalExpenses)} index={1} />
               <StatCard
                 icon={Trophy}
                 label="Categoria Campeã"
                 value={stats.topCategory?.name ?? '—'}
-                detail={stats.topCategory ? formatCurrency(stats.topCategory.amount) : undefined}
+                detail={stats.topCategory ? formatMoney(stats.topCategory.amount) : undefined}
                 index={2}
               />
               <StatCard
                 icon={Receipt}
                 label="Maior Gasto Único"
-                value={stats.biggestExpense ? formatCurrency(stats.biggestExpense.amount) : '—'}
+                value={stats.biggestExpense ? formatMoney(stats.biggestExpense.amount) : '—'}
                 detail={stats.biggestExpense?.title}
                 index={3}
               />
@@ -197,7 +199,7 @@ export function RetrospectivePage() {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {yearly.bestMonth && (
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.3 }}>
-                    <Card className="border border-positive/20 bg-black/40 backdrop-blur-xl">
+                    <Card className="border border-positive/20 bg-card/80 backdrop-blur-xl">
                       <CardHeader>
                         <CardDescription className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-positive uppercase">
                           <PartyPopper className="size-3.5" />
@@ -206,14 +208,14 @@ export function RetrospectivePage() {
                       </CardHeader>
                       <CardContent>
                         <p className="text-xl font-bold text-foreground">{yearly.bestMonth.label}</p>
-                        <p className="text-sm text-positive">+{formatCurrency(yearly.bestMonth.net)}</p>
+                        <p className="text-sm text-positive">+{formatMoney(yearly.bestMonth.net)}</p>
                       </CardContent>
                     </Card>
                   </motion.div>
                 )}
                 {yearly.toughestMonth && (
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.36 }}>
-                    <Card className="border border-destructive/20 bg-black/40 backdrop-blur-xl">
+                    <Card className="border border-destructive/20 bg-card/80 backdrop-blur-xl">
                       <CardHeader>
                         <CardDescription className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-destructive uppercase">
                           <TrendingDown className="size-3.5" />
@@ -222,7 +224,7 @@ export function RetrospectivePage() {
                       </CardHeader>
                       <CardContent>
                         <p className="text-xl font-bold text-foreground">{yearly.toughestMonth.label}</p>
-                        <p className="text-sm text-destructive">{formatCurrency(yearly.toughestMonth.net)}</p>
+                        <p className="text-sm text-destructive">{formatMoney(yearly.toughestMonth.net)}</p>
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -243,7 +245,7 @@ export function RetrospectivePage() {
                         tickLine={false}
                         width={48}
                         tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
-                        tickFormatter={(value) => formatCompactCurrency(Number(value))}
+                        tickFormatter={(value) => formatMoneyCompact(Number(value))}
                       />
                       <Tooltip content={MonthlyBarTooltip} cursor={{ fill: 'var(--border)', opacity: 0.3 }} />
                       <Bar dataKey="income" fill="var(--positive)" radius={[3, 3, 0, 0]} />

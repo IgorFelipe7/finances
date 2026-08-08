@@ -10,18 +10,19 @@ import {
   type TooltipContentProps,
 } from 'recharts'
 import { useNetWorthHistory } from '@/features/dashboard/hooks/useNetWorthHistory'
-import { formatCompactCurrency, formatCurrency } from '@/lib/currency'
+import { useMoneyFormatter } from '@/hooks/useMoneyFormatter'
 import { cn } from '@/lib/utils'
 
 function NetWorthTooltip({ active, payload, label }: TooltipContentProps) {
+  const { formatMoney } = useMoneyFormatter()
   if (!active || !payload?.length) return null
   const value = Number(payload[0]?.value ?? 0)
 
   return (
-    <div className="min-w-36 rounded-lg border border-white/10 bg-black/80 p-3 text-xs shadow-2xl backdrop-blur-xl">
+    <div className="min-w-36 rounded-lg border border-border bg-popover p-3 text-xs shadow-2xl backdrop-blur-xl">
       <p className="mb-1.5 font-medium text-foreground">{label}</p>
       <p className={cn('font-semibold tabular-nums', value >= 0 ? 'text-positive' : 'text-destructive')}>
-        {formatCurrency(value)}
+        {formatMoney(value)}
       </p>
     </div>
   )
@@ -29,6 +30,7 @@ function NetWorthTooltip({ active, payload, label }: TooltipContentProps) {
 
 export function NetWorthHistoryChart() {
   const points = useNetWorthHistory()
+  const { formatMoney, formatMoneyCompact } = useMoneyFormatter()
   const first = points[0]?.netWorth ?? 0
   const last = points.at(-1)?.netWorth ?? 0
   const change = last - first
@@ -42,12 +44,12 @@ export function NetWorthHistoryChart() {
             <Landmark className="size-4 text-primary" />
             Patrimônio ao Longo do Tempo
           </h3>
-          <p className="text-xs text-zinc-400">Evolução do patrimônio líquido nos últimos {points.length} meses</p>
+          <p className="text-xs text-muted-foreground">Evolução do patrimônio líquido nos últimos {points.length} meses</p>
         </div>
         {hasData && (
           <span className={cn('text-xs font-semibold tabular-nums', change >= 0 ? 'text-positive' : 'text-destructive')}>
             {change >= 0 ? '+' : ''}
-            {formatCurrency(change)}
+            {formatMoney(change)}
           </span>
         )}
       </div>
@@ -76,7 +78,7 @@ export function NetWorthHistoryChart() {
               tickLine={false}
               width={56}
               tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
-              tickFormatter={(value) => formatCompactCurrency(Number(value))}
+              tickFormatter={(value) => formatMoneyCompact(Number(value))}
             />
 
             <Tooltip content={NetWorthTooltip} cursor={{ stroke: 'var(--border)', strokeWidth: 1 }} />

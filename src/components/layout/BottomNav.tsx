@@ -11,7 +11,7 @@ export function BottomNav() {
           to={item.href}
           className={({ isActive }) =>
             cn(
-              'flex flex-1 flex-col items-center gap-1 rounded-lg py-1.5 text-[11px] text-zinc-400 transition-colors',
+              'flex flex-1 flex-col items-center gap-1 rounded-lg py-1.5 text-[11px] text-muted-foreground transition-colors',
               isActive && 'text-primary',
             )
           }

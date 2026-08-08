@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAccounts } from '@/features/accounts/hooks/useAccounts'
 import { usePayTransaction } from '@/features/transactions/hooks/useTransactionMutations'
 import type { ProjectedTransaction } from '@/features/transactions/lib/projectTransactions'
-import { formatCurrency } from '@/lib/currency'
+import { useMoneyFormatter } from '@/hooks/useMoneyFormatter'
 
 const payFormSchema = z.object({
   account_id: z.string().min(1, 'Selecione a conta.'),
@@ -39,6 +39,7 @@ export function PayTransactionDialog({ transaction, trigger }: PayTransactionDia
   const [open, setOpen] = useState(false)
   const { data: accounts = [] } = useAccounts()
   const payTransaction = usePayTransaction()
+  const { formatMoney } = useMoneyFormatter()
   const isInstallment = transaction.installments_total > 1
   const isIncome = transaction.transaction_type === 'income'
   const verb = isIncome ? 'Receber' : 'Pagar'
@@ -129,7 +130,7 @@ export function PayTransactionDialog({ transaction, trigger }: PayTransactionDia
                       onChange={(event) => field.onChange(event.target.valueAsNumber)}
                     />
                   </FormControl>
-                  <p className="text-xs text-muted-foreground">Previsto: {formatCurrency(transaction.amount)}</p>
+                  <p className="text-xs text-muted-foreground">Previsto: {formatMoney(transaction.amount)}</p>
                   <FormMessage />
                 </FormItem>
               )}

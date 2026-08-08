@@ -12,7 +12,7 @@ export function TipsGrid() {
     <div className="space-y-2">
       <div className="flex items-center justify-between px-1">
         <h2 className="text-sm font-medium text-foreground">Dicas de Economia</h2>
-        <span className="text-xs text-zinc-400">
+        <span className="text-xs text-muted-foreground">
           {appliedTipIds.length} de {SAVINGS_TIPS.length} já aplicadas
         </span>
       </div>
@@ -32,7 +32,7 @@ export function TipsGrid() {
                 'flex flex-col gap-2 rounded-xl border p-4 text-left transition-colors',
                 applied
                   ? 'border-positive/30 bg-positive/5'
-                  : 'border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.05]',
+                  : 'border-border bg-muted/30 hover:border-primary/20 hover:bg-accent/60',
               )}
             >
               <div className="flex items-start justify-between gap-2">
@@ -44,13 +44,13 @@ export function TipsGrid() {
                 >
                   {applied ? <Check className="size-4" /> : <tip.icon className="size-4" />}
                 </span>
-                <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] text-zinc-400 uppercase tracking-wide">
+                <span className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground uppercase tracking-wide">
                   {TIP_CATEGORY_LABELS[tip.category]}
                 </span>
               </div>
               <p className={cn('text-sm font-medium', applied ? 'text-positive' : 'text-foreground')}>{tip.title}</p>
-              <p className="text-xs leading-relaxed text-zinc-400">{tip.description}</p>
-              <span className="mt-auto pt-1 text-[11px] font-medium text-zinc-500">
+              <p className="text-xs leading-relaxed text-muted-foreground">{tip.description}</p>
+              <span className="mt-auto pt-1 text-[11px] font-medium text-muted-foreground">
                 {applied ? 'Marcada como já faço isso — toque pra desmarcar' : 'Toque quando já fizer isso'}
               </span>
             </motion.button>

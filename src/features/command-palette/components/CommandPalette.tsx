@@ -97,22 +97,22 @@ export function CommandPalette() {
             onClick={(event) => event.stopPropagation()}
             className="glass-panel w-full max-w-lg overflow-hidden rounded-xl"
           >
-            <div className="flex items-center gap-2.5 border-b border-white/10 px-4 py-3">
-              <Search className="size-4 shrink-0 text-zinc-500" />
+            <div className="flex items-center gap-2.5 border-b border-border px-4 py-3">
+              <Search className="size-4 shrink-0 text-muted-foreground" />
               <input
                 ref={inputRef}
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Buscar ou navegar..."
-                className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-zinc-500"
+                className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
               />
-              <kbd className="shrink-0 rounded border border-white/10 px-1.5 py-0.5 text-[10px] text-zinc-500">Esc</kbd>
+              <kbd className="shrink-0 rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground">Esc</kbd>
             </div>
 
             <div className="max-h-80 overflow-y-auto p-2">
               {filtered.length === 0 ? (
-                <p className="p-4 text-center text-sm text-zinc-500">Nada encontrado.</p>
+                <p className="p-4 text-center text-sm text-muted-foreground">Nada encontrado.</p>
               ) : (
                 filtered.map((command, index) => (
                   <button
@@ -122,7 +122,7 @@ export function CommandPalette() {
                     onMouseEnter={() => setHighlighted(index)}
                     className={cn(
                       'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors',
-                      index === highlighted ? 'bg-primary/10 text-primary' : 'text-zinc-300 hover:text-foreground',
+                      index === highlighted ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground',
                     )}
                   >
                     <command.icon className="size-4 shrink-0" />

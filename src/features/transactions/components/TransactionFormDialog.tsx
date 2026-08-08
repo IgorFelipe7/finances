@@ -320,7 +320,7 @@ export function TransactionFormDialog({
                         />
                       </FormControl>
                       {isRuleControlled && (
-                        <p className="text-xs text-zinc-500">Calculada pela regra de recorrência abaixo.</p>
+                        <p className="text-xs text-muted-foreground">Calculada pela regra de recorrência abaixo.</p>
                       )}
                       <FormMessage />
                     </FormItem>
@@ -597,7 +597,7 @@ export function TransactionFormDialog({
                 )}
 
                 {recurrenceKind !== 'day_of_month' && (
-                  <p className="text-xs text-zinc-400">
+                  <p className="text-xs text-muted-foreground">
                     Esse mês cai em <span className="font-medium text-foreground">{formatPreviewDate(watchedDate)}</span> —
                     todo mês a data é recalculada pela regra.
                   </p>

@@ -36,7 +36,7 @@ import { useCancelRecurrence, useDeactivateTransaction } from '@/features/transa
 import { useTransactions } from '@/features/transactions/hooks/useTransactions'
 import { withProjections, type ProjectedTransaction } from '@/features/transactions/lib/projectTransactions'
 import type { TransactionCategoryType } from '@/features/transactions/schemas/transaction.schema'
-import { formatCurrency } from '@/lib/currency'
+import { useMoneyFormatter } from '@/hooks/useMoneyFormatter'
 import { cn } from '@/lib/utils'
 
 type TypeFilter = TransactionCategoryType | 'all'
@@ -64,6 +64,7 @@ function TransactionRow({
   index: number
 }) {
   const [cancelOpen, setCancelOpen] = useState(false)
+  const { formatMoney } = useMoneyFormatter()
   const meta = TRANSACTION_TYPE_META[transaction.transaction_type]
   const deactivate = useDeactivateTransaction()
   const cancelRecurrence = useCancelRecurrence()
@@ -78,11 +79,11 @@ function TransactionRow({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, delay: Math.min(index * 0.03, 0.3) }}
       className={cn(
-        'group flex items-center gap-4 rounded-xl px-3 py-3 transition-colors hover:bg-white/5',
+        'group flex items-center gap-4 rounded-xl px-3 py-3 transition-colors hover:bg-accent/60',
         transaction.is_projected && 'opacity-70',
       )}
     >
-      <span className={cn('flex size-9 shrink-0 items-center justify-center rounded-full bg-white/5', meta.colorClass)}>
+      <span className={cn('flex size-9 shrink-0 items-center justify-center rounded-full bg-muted', meta.colorClass)}>
         <meta.icon className="size-4.5" />
       </span>
 
@@ -91,7 +92,7 @@ function TransactionRow({
           {transaction.title}
           {isInstallment ? ` (${transaction.installment_current}/${transaction.installments_total})` : ''}
         </p>
-        <p className="truncate text-xs text-zinc-400">
+        <p className="truncate text-xs text-muted-foreground">
           {accountName}
           {destinationAccountName ? ` → ${destinationAccountName}` : ''}
           {transaction.category ? ` · ${transaction.category}` : ''}
@@ -112,11 +113,11 @@ function TransactionRow({
           </Badge>
         )}
         {!transaction.is_projected && !transaction.is_paid && (
-          <Badge variant="outline" className="text-xs text-zinc-400">
+          <Badge variant="outline" className="text-xs text-muted-foreground">
             Pendente
           </Badge>
         )}
-        <span className="text-xs text-zinc-400">{formatDate(transaction.date)}</span>
+        <span className="text-xs text-muted-foreground">{formatDate(transaction.date)}</span>
       </div>
 
       <p
@@ -132,7 +133,7 @@ function TransactionRow({
         )}
       >
         {!isTransfer && signedAmount > 0 ? '+' : ''}
-        {formatCurrency(signedAmount)}
+        {formatMoney(signedAmount)}
       </p>
 
       {!transaction.is_paid && (
@@ -160,7 +161,7 @@ function TransactionRow({
                 type="button"
                 variant="ghost"
                 size="icon-sm"
-                className="shrink-0 text-zinc-500 transition-colors hover:text-foreground data-[state=open]:text-foreground"
+                className="shrink-0 text-muted-foreground transition-colors hover:text-foreground data-[state=open]:text-foreground"
                 aria-label="Opções da recorrência"
               >
                 <MoreVertical className="size-4" />
@@ -219,7 +220,7 @@ function TransactionRow({
           type="button"
           variant="ghost"
           size="icon-sm"
-          className="shrink-0 text-zinc-500 transition-colors hover:text-destructive disabled:pointer-events-none disabled:opacity-0"
+          className="shrink-0 text-muted-foreground transition-colors hover:text-destructive disabled:pointer-events-none disabled:opacity-0"
           disabled={deactivate.isPending || transaction.is_projected}
           onClick={() => deactivate.mutate(transaction.id)}
           aria-label="Remover transação"
@@ -269,8 +270,8 @@ export function TransactionsPage() {
                 type="button"
                 onClick={() => setTypeFilter(filter.value)}
                 className={cn(
-                  'rounded-full border border-transparent px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:text-foreground',
-                  typeFilter === filter.value && 'border-white/10 bg-white/5 text-foreground',
+                  'rounded-full border border-transparent px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground',
+                  typeFilter === filter.value && 'border-border bg-accent/60 text-foreground',
                 )}
               >
                 {filter.label}
@@ -302,7 +303,7 @@ export function TransactionsPage() {
           {isLoading ? (
             <div className="space-y-2 p-2">
               {[0, 1, 2, 3].map((i) => (
-                <div key={i} className="h-14 animate-pulse rounded-xl bg-white/5" />
+                <div key={i} className="h-14 animate-pulse rounded-xl bg-muted" />
               ))}
             </div>
           ) : filtered.length === 0 ? (
@@ -312,14 +313,14 @@ export function TransactionsPage() {
               </span>
               <div>
                 <p className="text-sm font-medium text-foreground">Nenhuma transação neste período</p>
-                <p className="mt-1 text-sm text-zinc-400">
+                <p className="mt-1 text-sm text-muted-foreground">
                   Ajuste os filtros ou registre uma nova transação para começar.
                 </p>
               </div>
               <TransactionFormDialog />
             </div>
           ) : (
-            <div className="divide-y divide-white/5">
+            <div className="divide-y divide-border">
               {filtered.map((transaction, index) => (
                 <TransactionRow
                   key={transaction.id}

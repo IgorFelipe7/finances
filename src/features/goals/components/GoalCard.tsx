@@ -19,7 +19,7 @@ import type { Account } from '@/features/accounts/schemas/account.schema'
 import { SavingsUpdateDialog } from '@/features/accounts/components/SavingsUpdateDialog'
 import { useDeactivateGoal } from '@/features/goals/hooks/useGoalMutations'
 import type { Goal } from '@/features/goals/schemas/goal.schema'
-import { formatCurrency } from '@/lib/currency'
+import { useMoneyFormatter } from '@/hooks/useMoneyFormatter'
 import { cn } from '@/lib/utils'
 
 function formatTargetDate(dateIso: string) {
@@ -29,6 +29,7 @@ function formatTargetDate(dateIso: string) {
 export function GoalCard({ goal, account, balance, index }: { goal: Goal; account: Account; balance: number; index: number }) {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const deactivateGoal = useDeactivateGoal()
+  const { formatMoney } = useMoneyFormatter()
 
   const progress = Math.min(Math.max(balance, 0) / goal.target_amount, 1)
   const isComplete = balance >= goal.target_amount
@@ -38,7 +39,7 @@ export function GoalCard({ goal, account, balance, index }: { goal: Goal; accoun
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: index * 0.05 }}>
-      <Card className="h-full border border-white/10 bg-black/40 backdrop-blur-xl">
+      <Card className="glass-panel h-full">
         <CardHeader className="flex flex-row items-center justify-between gap-2">
           <span className="flex min-w-0 items-center gap-2 text-sm font-medium text-foreground">
             <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: goal.color }} />
@@ -47,7 +48,7 @@ export function GoalCard({ goal, account, balance, index }: { goal: Goal; accoun
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button type="button" variant="ghost" size="icon-sm" className="shrink-0 text-zinc-500 hover:text-foreground" aria-label="Opções da meta">
+              <Button type="button" variant="ghost" size="icon-sm" className="shrink-0 text-muted-foreground hover:text-foreground" aria-label="Opções da meta">
                 <MoreVertical className="size-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -62,11 +63,11 @@ export function GoalCard({ goal, account, balance, index }: { goal: Goal; accoun
 
         <CardContent className="space-y-3">
           <div className="flex items-baseline justify-between gap-2">
-            <AnimatedNumber value={balance} formatter={formatCurrency} className="text-xl font-bold text-foreground" />
-            <span className="shrink-0 text-xs text-zinc-400">de {formatCurrency(goal.target_amount)}</span>
+            <AnimatedNumber value={balance} formatter={formatMoney} className="text-xl font-bold text-foreground" />
+            <span className="shrink-0 text-xs text-muted-foreground">de {formatMoney(goal.target_amount)}</span>
           </div>
 
-          <div className="h-2 overflow-hidden rounded-full bg-white/5">
+          <div className="h-2 overflow-hidden rounded-full bg-muted">
             <motion.div
               className="h-full rounded-full"
               style={{ backgroundColor: goal.color }}
@@ -76,7 +77,7 @@ export function GoalCard({ goal, account, balance, index }: { goal: Goal; accoun
             />
           </div>
 
-          <div className="flex items-center justify-between text-xs text-zinc-400">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span className={cn(isComplete && 'flex items-center gap-1 text-positive')}>
               {isComplete && <CheckCircle2 className="size-3.5" />}
               {(progress * 100).toFixed(0)}% completo

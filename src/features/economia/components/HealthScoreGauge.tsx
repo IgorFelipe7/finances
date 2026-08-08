@@ -39,7 +39,7 @@ export function HealthScoreGauge({ score }: { score: number }) {
           formatter={(v) => Math.round(v).toString()}
           className="text-4xl font-bold text-foreground"
         />
-        <span className="text-xs text-zinc-400">de 100</span>
+        <span className="text-xs text-muted-foreground">de 100</span>
       </div>
     </div>
   )

@@ -60,46 +60,51 @@
 :root {
   --radius: 0.75rem;
 
-  /* Same token set as .dark — this app has no light theme. */
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.985 0 0);
+  /* Light theme — same brand primary as .dark, neutral base flipped to a soft off-white. */
+  --background: oklch(0.99 0.002 286.32);
+  --foreground: oklch(0.141 0.005 285.823);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.141 0.005 285.823);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.141 0.005 285.823);
 
   --primary: oklch(0.585 0.233 277.117);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.955 0.003 286.32);
+  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --muted: oklch(0.955 0.003 286.32);
+  --muted-foreground: oklch(0.472 0.013 285.938);
+  --accent: oklch(0.937 0.03 277.117);
+  --accent-foreground: oklch(0.33 0.1 277.117);
 
-  --destructive: oklch(0.645 0.246 16.439);
+  --destructive: oklch(0.55 0.22 16.439);
   --destructive-foreground: oklch(0.985 0 0);
-  --positive: oklch(0.72 0.19 149.579);
-  --positive-foreground: oklch(0.145 0.02 149.579);
+  --positive: oklch(0.5 0.14 149.579);
+  --positive-foreground: oklch(0.985 0 0);
 
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.585 0.233 277.117 / 50%);
+  --border: oklch(0.912 0.005 286.32);
+  --input: oklch(0.882 0.006 286.32);
+  --ring: oklch(0.585 0.233 277.117 / 45%);
 
   --chart-1: oklch(0.585 0.233 277.117);
-  --chart-2: oklch(0.72 0.19 149.579);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.645 0.246 16.439);
-  --chart-5: oklch(0.715 0.143 215.221);
+  --chart-2: oklch(0.5 0.14 149.579);
+  --chart-3: oklch(0.65 0.19 70.08);
+  --chart-4: oklch(0.55 0.22 16.439);
+  --chart-5: oklch(0.55 0.12 215.221);
 
-  --sidebar: oklch(0.18 0.006 285.885);
-  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar: oklch(0.972 0.002 286.32);
+  --sidebar-foreground: oklch(0.141 0.005 285.823);
   --sidebar-primary: oklch(0.585 0.233 277.117);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.585 0.233 277.117 / 50%);
+  --sidebar-accent: oklch(0.937 0.03 277.117);
+  --sidebar-accent-foreground: oklch(0.33 0.1 277.117);
+  --sidebar-border: oklch(0.912 0.005 286.32);
+  --sidebar-ring: oklch(0.585 0.233 277.117 / 45%);
+
+  --glass-bg: oklch(1 0 0 / 65%);
+  --glass-border: oklch(0.141 0.005 285.823 / 8%);
+  --glass-shadow-1: oklch(1 0 0 / 70%);
+  --glass-shadow-2: oklch(0.141 0.005 285.823 / 10%);
 
   --font-sans: 'Geist Variable', 'Inter', system-ui, sans-serif;
 }
@@ -144,6 +149,11 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.585 0.233 277.117 / 50%);
+
+  --glass-bg: oklch(0 0 0 / 40%);
+  --glass-border: oklch(1 0 0 / 10%);
+  --glass-shadow-1: oklch(1 0 0 / 6%);
+  --glass-shadow-2: oklch(0 0 0 / 60%);
 }
 
 @layer base {
@@ -152,6 +162,11 @@
   }
   html {
     @apply font-sans;
+  }
+  html:not(.dark) {
+    color-scheme: light;
+  }
+  html.dark {
     color-scheme: dark;
   }
   body {
@@ -159,13 +174,13 @@
   }
 }
 
-/* Reusable glassmorphism surface: bg-black/40 + backdrop-blur-xl + border-white/10 */
+/* Reusable glassmorphism surface — colors sourced from theme tokens, swaps automatically between themes */
 @utility glass-panel {
-  background-color: rgb(0 0 0 / 40%);
+  background-color: var(--glass-bg);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgb(255 255 255 / 10%);
+  border: 1px solid var(--glass-border);
   box-shadow:
-    0 1px 0 0 rgb(255 255 255 / 6%) inset,
-    0 24px 48px -24px rgb(0 0 0 / 60%);
+    0 1px 0 0 var(--glass-shadow-1) inset,
+    0 24px 48px -24px var(--glass-shadow-2);
 }

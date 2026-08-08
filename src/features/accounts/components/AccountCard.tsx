@@ -26,7 +26,7 @@ import { useDeleteAccount } from '@/features/accounts/hooks/useAccountMutations'
 import { useCreditCardInvoices } from '@/features/accounts/hooks/useCreditCardInvoices'
 import { formatDueDate } from '@/features/accounts/lib/creditCard'
 import type { Account } from '@/features/accounts/schemas/account.schema'
-import { formatCurrency } from '@/lib/currency'
+import { useMoneyFormatter } from '@/hooks/useMoneyFormatter'
 import { cn } from '@/lib/utils'
 
 interface AccountCardProps {
@@ -39,6 +39,7 @@ export function AccountCard({ account, balance, index }: AccountCardProps) {
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const deleteAccount = useDeleteAccount()
+  const { formatMoney } = useMoneyFormatter()
 
   const meta = ACCOUNT_TYPE_META[account.type]
   const isCreditCard = account.type === 'credit_card'
@@ -55,14 +56,14 @@ export function AccountCard({ account, balance, index }: AccountCardProps) {
       transition={{ duration: 0.3, delay: index * 0.05 }}
       whileHover={{ y: -2 }}
     >
-      <Card className="group relative overflow-hidden bg-black/40 backdrop-blur-xl transition-shadow hover:shadow-xl hover:shadow-black/20">
+      <Card className="group relative overflow-hidden glass-panel transition-shadow hover:shadow-xl hover:shadow-black/20">
         <div
           className="pointer-events-none absolute inset-x-0 top-0 h-24 opacity-20 blur-2xl transition-opacity group-hover:opacity-30"
           style={{ backgroundColor: account.color }}
         />
         <CardHeader className="relative flex items-center gap-3">
           <span
-            className="flex size-10 shrink-0 items-center justify-center rounded-full ring-1 ring-white/10"
+            className="flex size-10 shrink-0 items-center justify-center rounded-full ring-1 ring-border"
             style={{ backgroundColor: `${account.color}26` }}
           >
             <meta.icon className="size-5" style={{ color: account.color }} />
@@ -74,7 +75,7 @@ export function AccountCard({ account, balance, index }: AccountCardProps) {
                 <Link2 className="size-3 shrink-0 text-primary" aria-label="Sincronizado via Open Finance" />
               )}
             </p>
-            <p className="text-xs text-zinc-400">{meta.label}</p>
+            <p className="text-xs text-muted-foreground">{meta.label}</p>
           </div>
 
           <DropdownMenu>
@@ -83,7 +84,7 @@ export function AccountCard({ account, balance, index }: AccountCardProps) {
                 type="button"
                 variant="ghost"
                 size="icon-sm"
-                className="shrink-0 text-zinc-500 transition-colors hover:text-foreground data-[state=open]:text-foreground"
+                className="shrink-0 text-muted-foreground transition-colors hover:text-foreground data-[state=open]:text-foreground"
                 aria-label="Opções da conta"
               >
                 <MoreVertical className="size-4" />
@@ -102,35 +103,35 @@ export function AccountCard({ account, balance, index }: AccountCardProps) {
           </DropdownMenu>
         </CardHeader>
         <CardContent className="relative">
-          <p className="text-xs text-zinc-400">{isCreditCard ? 'Saldo devedor' : 'Saldo atual'}</p>
+          <p className="text-xs text-muted-foreground">{isCreditCard ? 'Saldo devedor' : 'Saldo atual'}</p>
           <p className={cn('text-2xl font-bold tabular-nums text-foreground', isNegative && 'text-destructive')}>
-            {formatCurrency(displayBalance)}
+            {formatMoney(displayBalance)}
           </p>
 
           {isCreditCard && (
-            <div className="mt-4 space-y-3 border-t border-white/10 pt-3">
-              <div className="flex items-center justify-between text-xs text-zinc-400">
+            <div className="mt-4 space-y-3 border-t border-border pt-3">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span className="flex items-center gap-1.5">
                   <ReceiptText className="size-3.5" />
                   {invoices ? 'Fatura a pagar' : 'Fatura atual'}
                 </span>
                 <span className="font-semibold text-foreground tabular-nums">
-                  {formatCurrency(dueInvoiceAmount)}
+                  {formatMoney(dueInvoiceAmount)}
                 </span>
               </div>
 
               {invoices ? (
                 <>
-                  <p className="text-xs text-zinc-400">Vence dia {formatDueDate(invoices.closed.dueDate)}</p>
+                  <p className="text-xs text-muted-foreground">Vence dia {formatDueDate(invoices.closed.dueDate)}</p>
                   {invoices.open.amount > 0 && (
-                    <p className="flex items-center justify-between text-xs text-zinc-500">
+                    <p className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>Próxima fatura (fecha dia {formatDueDate(invoices.open.closingDate)})</span>
-                      <span className="tabular-nums">{formatCurrency(invoices.open.amount)}</span>
+                      <span className="tabular-nums">{formatMoney(invoices.open.amount)}</span>
                     </p>
                   )}
                 </>
               ) : (
-                <p className="text-xs text-zinc-500">
+                <p className="text-xs text-muted-foreground">
                   Configure o dia de fechamento e vencimento para separar a fatura por ciclo.
                 </p>
               )}

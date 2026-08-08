@@ -7,10 +7,12 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { RealtimeProvider } from '@/components/RealtimeProvider'
 import { useUIPreferencesStore } from '@/features/settings/store/useUIPreferencesStore'
 import { queryClient } from '@/lib/query-client'
+import { useThemeEffect } from '@/lib/useThemeEffect'
 import { router } from '@/routes/router'
 
 function App() {
   const reduceMotion = useUIPreferencesStore((state) => state.reduceMotion)
+  const resolvedTheme = useThemeEffect()
 
   return (
     <ErrorBoundary>
@@ -19,7 +21,7 @@ function App() {
           <AuthProvider>
             <RealtimeProvider>
               <RouterProvider router={router} />
-              <Toaster theme="dark" richColors position="top-center" />
+              <Toaster theme={resolvedTheme} richColors position="top-center" />
             </RealtimeProvider>
           </AuthProvider>
         </MotionConfig>

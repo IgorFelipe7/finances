@@ -17,7 +17,7 @@ export function CalendarGrid({ days, monthKey, direction, selectedIso, onSelectD
 
   return (
     <div className="glass-panel overflow-hidden rounded-xl p-3 sm:p-4">
-      <div className="grid grid-cols-7 gap-1 px-1 pb-2 text-center text-[11px] font-medium tracking-wide text-zinc-500 uppercase">
+      <div className="grid grid-cols-7 gap-1 px-1 pb-2 text-center text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
         {WEEKDAY_HEADERS.map((label) => (
           <span key={label}>{label}</span>
         ))}

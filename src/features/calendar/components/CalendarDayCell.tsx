@@ -28,8 +28,8 @@ export function CalendarDayCell({ day, maxExpense, isSelected, onSelect, index }
       whileHover={isClickable ? { y: -2 } : undefined}
       whileTap={isClickable ? { scale: 0.97 } : undefined}
       className={cn(
-        'group relative flex aspect-square flex-col overflow-hidden rounded-xl border border-white/[0.04] bg-white/[0.015] p-1.5 text-left transition-colors sm:aspect-auto sm:h-24 sm:p-2.5',
-        isClickable && 'hover:border-white/10 hover:bg-white/[0.05]',
+        'group relative flex aspect-square flex-col overflow-hidden rounded-xl border border-black/[0.04] bg-black/[0.015] p-1.5 text-left transition-colors sm:aspect-auto sm:h-24 sm:p-2.5 dark:border-white/[0.04] dark:bg-white/[0.015]',
+        isClickable && 'hover:border-border hover:bg-black/[0.035] dark:hover:border-white/10 dark:hover:bg-white/[0.05]',
         !day.isCurrentMonth && 'opacity-30',
         day.isToday && !isSelected && 'border-primary/30',
         isSelected && 'border-primary/60 bg-primary/[0.08] ring-1 ring-primary/40',
@@ -49,8 +49,8 @@ export function CalendarDayCell({ day, maxExpense, isSelected, onSelect, index }
             day.isToday
               ? 'bg-gradient-to-br from-primary to-chart-5 text-primary-foreground shadow-lg shadow-primary/30'
               : day.isWeekend
-                ? 'text-zinc-600'
-                : 'text-zinc-300',
+                ? 'text-muted-foreground'
+                : 'text-foreground/90',
           )}
         >
           {day.date.getDate()}

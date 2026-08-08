@@ -20,7 +20,7 @@ export function DayAgendaPanel({ day }: DayAgendaPanelProps) {
           <CalendarHeart className="size-4" />
         </span>
         <div className="min-w-0">
-          <p className="text-[11px] font-medium tracking-wide text-zinc-500 uppercase">
+          <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
             {day.isToday ? 'Hoje' : 'Dia selecionado'}
           </p>
           <p className="truncate text-sm font-semibold text-foreground capitalize">{formatPanelDate(day.date)}</p>

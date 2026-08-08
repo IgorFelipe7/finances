@@ -11,37 +11,38 @@ import {
   type TooltipContentProps,
 } from 'recharts'
 import { useCashFlowSeries } from '@/features/dashboard/hooks/useCashFlowSeries'
-import { formatCompactCurrency, formatCurrency } from '@/lib/currency'
+import { useMoneyFormatter } from '@/hooks/useMoneyFormatter'
 import { cn } from '@/lib/utils'
 
 function CashFlowTooltip({ active, payload, label }: TooltipContentProps) {
+  const { formatMoney } = useMoneyFormatter()
   if (!active || !payload?.length) return null
   const income = payload.find((entry) => entry.dataKey === 'income')?.value ?? 0
   const expense = payload.find((entry) => entry.dataKey === 'expense')?.value ?? 0
   const net = Number(income) - Number(expense)
 
   return (
-    <div className="min-w-44 rounded-lg border border-white/10 bg-black/80 p-3 text-xs shadow-2xl backdrop-blur-xl">
+    <div className="min-w-44 rounded-lg border border-border bg-popover p-3 text-xs shadow-2xl backdrop-blur-xl">
       <p className="mb-2 font-medium text-foreground">{label}</p>
       <div className="space-y-1.5">
         <div className="flex items-center justify-between gap-4">
-          <span className="flex items-center gap-1.5 text-zinc-400">
+          <span className="flex items-center gap-1.5 text-muted-foreground">
             <span className="h-0.5 w-3 rounded-full bg-positive" />
             Receitas
           </span>
-          <span className="font-semibold tabular-nums text-foreground">{formatCurrency(Number(income))}</span>
+          <span className="font-semibold tabular-nums text-foreground">{formatMoney(Number(income))}</span>
         </div>
         <div className="flex items-center justify-between gap-4">
-          <span className="flex items-center gap-1.5 text-zinc-400">
+          <span className="flex items-center gap-1.5 text-muted-foreground">
             <span className="h-0.5 w-3 rounded-full bg-destructive" />
             Despesas
           </span>
-          <span className="font-semibold tabular-nums text-foreground">{formatCurrency(Number(expense))}</span>
+          <span className="font-semibold tabular-nums text-foreground">{formatMoney(Number(expense))}</span>
         </div>
-        <div className="mt-1.5 flex items-center justify-between gap-4 border-t border-white/10 pt-1.5">
-          <span className="text-zinc-400">Saldo</span>
+        <div className="mt-1.5 flex items-center justify-between gap-4 border-t border-border pt-1.5">
+          <span className="text-muted-foreground">Saldo</span>
           <span className={cn('font-semibold tabular-nums', net >= 0 ? 'text-positive' : 'text-destructive')}>
-            {formatCurrency(net)}
+            {formatMoney(net)}
           </span>
         </div>
       </div>
@@ -51,7 +52,7 @@ function CashFlowTooltip({ active, payload, label }: TooltipContentProps) {
 
 function LegendSwatch({ colorClassName, label }: { colorClassName: string; label: string }) {
   return (
-    <span className="flex items-center gap-1.5 text-xs text-zinc-400">
+    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
       <span className={cn('h-0.5 w-3 rounded-full', colorClassName)} />
       {label}
     </span>
@@ -60,6 +61,7 @@ function LegendSwatch({ colorClassName, label }: { colorClassName: string; label
 
 export function CashFlowAreaChart() {
   const points = useCashFlowSeries()
+  const { formatMoneyCompact } = useMoneyFormatter()
   const todayIndex = points.findIndex((point) => point.isFuture)
   const referenceLabel = todayIndex > 0 ? points[todayIndex - 1].label : null
 
@@ -71,7 +73,7 @@ export function CashFlowAreaChart() {
             <TrendingUp className="size-4 text-primary" />
             Fluxo de Caixa
           </h3>
-          <p className="text-xs text-zinc-400">Receitas vs despesas dos últimos 6 meses</p>
+          <p className="text-xs text-muted-foreground">Receitas vs despesas dos últimos 6 meses</p>
         </div>
         <div className="flex items-center gap-3">
           <LegendSwatch colorClassName="bg-positive" label="Receitas" />
@@ -107,7 +109,7 @@ export function CashFlowAreaChart() {
               tickLine={false}
               width={56}
               tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
-              tickFormatter={(value) => formatCompactCurrency(Number(value))}
+              tickFormatter={(value) => formatMoneyCompact(Number(value))}
             />
 
             <Tooltip content={CashFlowTooltip} cursor={{ stroke: 'var(--border)', strokeWidth: 1 }} />

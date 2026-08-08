@@ -6,7 +6,7 @@ import type { CalendarDay } from '@/features/calendar/lib/buildCalendarGrid'
 import { PayTransactionDialog } from '@/features/transactions/components/PayTransactionDialog'
 import { TransactionFormDialog } from '@/features/transactions/components/TransactionFormDialog'
 import { TRANSACTION_TYPE_META } from '@/features/transactions/constants'
-import { formatCurrency } from '@/lib/currency'
+import { useMoneyFormatter } from '@/hooks/useMoneyFormatter'
 import { cn } from '@/lib/utils'
 
 interface DayAgendaContentProps {
@@ -17,11 +17,12 @@ interface DayAgendaContentProps {
 }
 
 export function DayAgendaContent({ day, scrollable = false }: DayAgendaContentProps) {
+  const { formatMoney } = useMoneyFormatter()
   return (
     <div className="space-y-3">
       {day.entries.length > 0 && (
-        <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
-          <span className="text-xs text-zinc-400">
+        <div className="flex items-center justify-between rounded-lg border border-border bg-muted/40 px-3 py-2">
+          <span className="text-xs text-muted-foreground">
             {day.entries.length} lançamento{day.entries.length > 1 ? 's' : ''}
           </span>
           <span
@@ -30,15 +31,15 @@ export function DayAgendaContent({ day, scrollable = false }: DayAgendaContentPr
               day.net >= 0 ? 'text-positive' : 'text-destructive',
             )}
           >
-            {formatCurrency(day.net)}
+            {formatMoney(day.net)}
           </span>
         </div>
       )}
 
       {day.entries.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-white/10 py-8 text-center">
-          <CalendarX2 className="size-5 text-zinc-600" />
-          <p className="text-xs text-zinc-500">Nenhum lançamento neste dia.</p>
+        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border py-8 text-center">
+          <CalendarX2 className="size-5 text-muted-foreground/70" />
+          <p className="text-xs text-muted-foreground">Nenhum lançamento neste dia.</p>
         </div>
       ) : (
         <div className={cn('space-y-1.5', scrollable && 'max-h-[45vh] overflow-y-auto pr-0.5')}>
@@ -50,14 +51,14 @@ export function DayAgendaContent({ day, scrollable = false }: DayAgendaContentPr
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: Math.min(index * 0.04, 0.2) }}
-                className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2.5"
+                className="flex items-center gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2.5"
               >
-                <span className={cn('flex size-8 shrink-0 items-center justify-center rounded-full bg-white/5', meta.colorClass)}>
+                <span className={cn('flex size-8 shrink-0 items-center justify-center rounded-full bg-muted', meta.colorClass)}>
                   <meta.icon className="size-4" />
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-foreground">{entry.title}</p>
-                  <p className="truncate text-xs text-zinc-400">{entry.category ?? 'Sem categoria'}</p>
+                  <p className="truncate text-xs text-muted-foreground">{entry.category ?? 'Sem categoria'}</p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1">
                   <span
@@ -67,10 +68,10 @@ export function DayAgendaContent({ day, scrollable = false }: DayAgendaContentPr
                     )}
                   >
                     {entry.transaction_type === 'income' ? '+' : '-'}
-                    {formatCurrency(entry.amount)}
+                    {formatMoney(entry.amount)}
                   </span>
                   {entry.is_paid ? (
-                    <Badge variant="outline" className="text-[10px] text-zinc-400">
+                    <Badge variant="outline" className="text-[10px] text-muted-foreground">
                       {entry.transaction_type === 'income' ? 'Recebido' : 'Pago'}
                     </Badge>
                   ) : (

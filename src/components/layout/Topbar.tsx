@@ -5,6 +5,8 @@ import { useCommandPaletteStore } from '@/features/command-palette/store/useComm
 import { useTimeTravelStore } from '@/features/dashboard/store/useTimeTravelStore'
 import { generateMonthOptions } from '@/lib/date'
 import { Button } from '@/components/ui/button'
+import { HideValuesToggle } from '@/components/layout/HideValuesToggle'
+import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,19 +44,19 @@ export function Topbar({ title }: TopbarProps) {
   }
 
   return (
-    <header className="flex items-center justify-between gap-4 border-b border-white/10 px-4 py-4 md:px-8">
+    <header className="flex items-center justify-between gap-4 border-b border-border px-4 py-4 md:px-8">
       <h1 className="text-lg font-semibold text-foreground">{title}</h1>
 
       <div className="flex items-center gap-3">
         <Button
           type="button"
           variant="outline"
-          className="hidden gap-2 text-zinc-400 sm:flex"
+          className="hidden gap-2 text-muted-foreground sm:flex"
           onClick={openCommandPalette}
         >
           <Search className="size-4" />
           Buscar
-          <kbd className="rounded border border-white/10 px-1.5 py-0.5 text-[10px] text-zinc-500">Ctrl K</kbd>
+          <kbd className="rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground/80">Ctrl K</kbd>
         </Button>
         <Button
           type="button"
@@ -66,6 +68,9 @@ export function Topbar({ title }: TopbarProps) {
         >
           <Search className="size-4" />
         </Button>
+
+        <HideValuesToggle />
+        <ThemeToggle />
 
         <Select value={selectedValue} onValueChange={handlePeriodChange}>
           <SelectTrigger className="w-40">

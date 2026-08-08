@@ -22,7 +22,7 @@ function TypingDots() {
       {[0, 1, 2].map((i) => (
         <motion.span
           key={i}
-          className="size-1.5 rounded-full bg-zinc-400"
+          className="size-1.5 rounded-full bg-muted-foreground"
           animate={{ opacity: [0.3, 1, 0.3] }}
           transition={{ duration: 1.1, repeat: Infinity, delay: i * 0.15 }}
         />
@@ -42,7 +42,7 @@ function MessageBubble({ message, isStreaming }: { message: ChatMessage; isStrea
           'max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm break-words whitespace-pre-wrap',
           isUser
             ? 'rounded-br-sm bg-primary text-primary-foreground'
-            : 'rounded-bl-sm border border-white/10 bg-white/[0.04] text-zinc-200',
+            : 'rounded-bl-sm border border-border bg-muted text-foreground',
         )}
       >
         {isEmpty && isStreaming ? <TypingDots /> : message.content}
@@ -107,21 +107,21 @@ export function AssistantPanel() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 16, scale: 0.98 }}
           transition={{ type: 'spring', stiffness: 420, damping: 38 }}
-          className="fixed inset-0 z-40 flex flex-col overflow-hidden border border-white/10 bg-background shadow-2xl backdrop-blur-xl sm:inset-auto sm:right-6 sm:bottom-24 sm:h-[600px] sm:w-[400px] sm:rounded-2xl"
+          className="fixed inset-0 z-40 flex flex-col overflow-hidden border border-border bg-background shadow-2xl backdrop-blur-xl sm:inset-auto sm:right-6 sm:bottom-24 sm:h-[600px] sm:w-[400px] sm:rounded-2xl"
         >
-          <div className="flex shrink-0 items-center gap-3 border-b border-white/10 px-4 py-3.5">
+          <div className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-3.5">
             <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-chart-5 shadow-lg shadow-primary/30">
               <Sparkles className="size-4 text-primary-foreground" />
             </span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-foreground">Assistente Financeiro</p>
-              <p className="truncate text-xs text-zinc-400">sabe seus números em tempo real</p>
+              <p className="truncate text-xs text-muted-foreground">sabe seus números em tempo real</p>
             </div>
             <Button
               type="button"
               variant="ghost"
               size="icon-sm"
-              className="text-zinc-500 hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground"
               onClick={clear}
               disabled={messages.length === 0 || isStreaming}
               aria-label="Limpar conversa"
@@ -132,7 +132,7 @@ export function AssistantPanel() {
               type="button"
               variant="ghost"
               size="icon-sm"
-              className="text-zinc-500 hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground"
               onClick={close}
               aria-label="Fechar assistente"
             >
@@ -148,7 +148,7 @@ export function AssistantPanel() {
                 </span>
                 <div>
                   <p className="text-sm font-medium text-foreground">Pergunte o que quiser</p>
-                  <p className="mt-1 text-xs text-zinc-400">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     Já sei suas contas, gastos e cobranças fixas. Pode perguntar direto.
                   </p>
                 </div>
@@ -158,7 +158,7 @@ export function AssistantPanel() {
                       key={prompt}
                       type="button"
                       onClick={() => handleSend(prompt)}
-                      className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-left text-xs text-zinc-300 transition-colors hover:border-primary/30 hover:bg-primary/10 hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
+                      className="rounded-lg border border-border bg-muted/50 px-3 py-2 text-left text-xs text-muted-foreground transition-colors hover:border-primary/30 hover:bg-primary/10 hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
                     >
                       {prompt}
                     </button>
@@ -172,7 +172,7 @@ export function AssistantPanel() {
             )}
           </div>
 
-          <div className="shrink-0 border-t border-white/10 p-3">
+          <div className="shrink-0 border-t border-border p-3">
             <div className="flex items-end gap-2">
               <Textarea
                 value={input}

@@ -3,6 +3,7 @@ import { AlertOctagon, AlertTriangle, Lightbulb, PartyPopper, RotateCw, Sparkles
 import { Button } from '@/components/ui/button'
 import { useFinancialInsights } from '@/features/dashboard/hooks/useFinancialInsights'
 import type { Insight, InsightTone } from '@/features/dashboard/schemas/insight.schema'
+import { useMoneyFormatter } from '@/hooks/useMoneyFormatter'
 import { cn } from '@/lib/utils'
 
 const TONE_META: Record<
@@ -45,6 +46,7 @@ const TONE_META: Record<
 
 function InsightHero({ insight }: { insight: Insight }) {
   const meta = TONE_META[insight.tone]
+  const { maskText } = useMoneyFormatter()
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -53,12 +55,12 @@ function InsightHero({ insight }: { insight: Insight }) {
       className={cn('glass-panel relative flex items-start gap-4 overflow-hidden rounded-xl p-5 ring-1', meta.ring, meta.glow)}
     >
       <span className={cn('absolute inset-y-0 left-0 w-1', meta.bar)} />
-      <span className={cn('flex size-10 shrink-0 items-center justify-center rounded-full bg-white/5', meta.text)}>
+      <span className={cn('flex size-10 shrink-0 items-center justify-center rounded-full bg-muted', meta.text)}>
         <meta.icon className="size-5" />
       </span>
       <div className="min-w-0">
-        <p className={cn('text-sm font-semibold', meta.text)}>{insight.headline}</p>
-        <p className="mt-1 text-sm text-zinc-300">{insight.message}</p>
+        <p className={cn('text-sm font-semibold', meta.text)}>{maskText(insight.headline)}</p>
+        <p className="mt-1 text-sm text-foreground/80">{maskText(insight.message)}</p>
       </div>
     </motion.div>
   )
@@ -66,21 +68,22 @@ function InsightHero({ insight }: { insight: Insight }) {
 
 function InsightCard({ insight, index }: { insight: Insight; index: number }) {
   const meta = TONE_META[insight.tone]
+  const { maskText } = useMoneyFormatter()
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.06 + index * 0.05 }}
       className={cn(
-        'relative flex w-64 shrink-0 flex-col gap-2 overflow-hidden rounded-xl border-l-2 bg-white/[0.03] p-4',
+        'relative flex w-64 shrink-0 flex-col gap-2 overflow-hidden rounded-xl border-l-2 bg-muted/30 p-4',
         meta.border,
       )}
     >
       <div className="flex items-center gap-2">
         <meta.icon className={cn('size-4 shrink-0', meta.text)} />
-        <p className={cn('text-xs font-semibold', meta.text)}>{insight.headline}</p>
+        <p className={cn('text-xs font-semibold', meta.text)}>{maskText(insight.headline)}</p>
       </div>
-      <p className="text-xs leading-relaxed text-zinc-400">{insight.message}</p>
+      <p className="text-xs leading-relaxed text-muted-foreground">{maskText(insight.message)}</p>
     </motion.div>
   )
 }
@@ -88,10 +91,10 @@ function InsightCard({ insight, index }: { insight: Insight; index: number }) {
 function InsightsSkeleton() {
   return (
     <div className="space-y-3">
-      <div className="glass-panel h-20 animate-pulse rounded-xl bg-white/5" />
+      <div className="glass-panel h-20 animate-pulse rounded-xl" />
       <div className="flex gap-3">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="h-24 w-64 shrink-0 animate-pulse rounded-xl bg-white/5" />
+          <div key={i} className="h-24 w-64 shrink-0 animate-pulse rounded-xl bg-muted" />
         ))}
       </div>
     </div>
@@ -117,7 +120,7 @@ export function InsightsPanel() {
           type="button"
           variant="ghost"
           size="icon-sm"
-          className="text-zinc-500 hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground"
           onClick={() => refetch()}
           disabled={isFetching}
           aria-label="Atualizar insights"

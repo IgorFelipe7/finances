@@ -5,19 +5,20 @@ import { AccountFormDialog } from '@/features/accounts/components/AccountFormDia
 import { useAccountBalances } from '@/features/accounts/hooks/useAccountBalances'
 import { useAccounts } from '@/features/accounts/hooks/useAccounts'
 import { BankConnectionsPanel } from '@/features/bank-sync/components/BankConnectionsPanel'
-import { formatCurrency } from '@/lib/currency'
+import { useMoneyFormatter } from '@/hooks/useMoneyFormatter'
 
 export function AccountsPage() {
   const { isLoading } = useAccounts()
   const { accountBalances, netWorth } = useAccountBalances()
+  const { formatMoney } = useMoneyFormatter()
 
   return (
     <AppLayout title="Contas">
       <div className="space-y-6">
         <div className="glass-panel flex flex-col gap-4 rounded-xl p-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-xs font-medium tracking-wide text-zinc-400 uppercase">Patrimônio total</p>
-            <p className="mt-1 text-3xl font-bold tabular-nums text-foreground">{formatCurrency(netWorth)}</p>
+            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Patrimônio total</p>
+            <p className="mt-1 text-3xl font-bold tabular-nums text-foreground">{formatMoney(netWorth)}</p>
           </div>
           <AccountFormDialog />
         </div>
@@ -37,7 +38,7 @@ export function AccountsPage() {
             </span>
             <div>
               <p className="text-sm font-medium text-foreground">Nenhuma conta cadastrada</p>
-              <p className="mt-1 text-sm text-zinc-400">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Adicione seu primeiro banco, carteira ou cartão para começar a acompanhar seus saldos.
               </p>
             </div>

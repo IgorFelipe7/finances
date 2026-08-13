@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { CurrencyInput } from '@/components/CurrencyInput'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -169,13 +170,13 @@ export function SavingsUpdateDialog({ accounts, balancesByAccountId, trigger }: 
                 <FormItem>
                   <FormLabel>{mode === 'add' ? 'Quanto você guardou?' : 'Novo saldo total'}</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      inputMode="decimal"
+                    <CurrencyInput
                       disabled={createTransaction.isPending}
-                      {...field}
-                      onChange={(event) => field.onChange(event.target.valueAsNumber)}
+                      name={field.name}
+                      ref={field.ref}
+                      value={field.value}
+                      onBlur={field.onBlur}
+                      onValueChange={field.onChange}
                     />
                   </FormControl>
                   <p className="text-xs text-muted-foreground">

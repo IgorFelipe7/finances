@@ -19,6 +19,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { CurrencyInput } from '@/components/CurrencyInput'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -183,14 +184,13 @@ export function AccountFormDialog({
                 <FormItem>
                   <FormLabel>Saldo inicial</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      inputMode="decimal"
-                      placeholder="0,00"
+                    <CurrencyInput
                       disabled={isPending}
-                      {...field}
-                      onChange={(event) => field.onChange(event.target.valueAsNumber)}
+                      name={field.name}
+                      ref={field.ref}
+                      value={field.value}
+                      onBlur={field.onBlur}
+                      onValueChange={field.onChange}
                     />
                   </FormControl>
                   <FormMessage />

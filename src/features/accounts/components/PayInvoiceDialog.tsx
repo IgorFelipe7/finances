@@ -19,6 +19,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { CurrencyInput } from '@/components/CurrencyInput'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -139,13 +140,13 @@ export function PayInvoiceDialog({ card, invoiceAmount, trigger }: PayInvoiceDia
                 <FormItem>
                   <FormLabel>Valor</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      inputMode="decimal"
+                    <CurrencyInput
                       disabled={createTransaction.isPending}
-                      {...field}
-                      onChange={(event) => field.onChange(event.target.valueAsNumber)}
+                      name={field.name}
+                      ref={field.ref}
+                      value={field.value}
+                      onBlur={field.onBlur}
+                      onValueChange={field.onChange}
                     />
                   </FormControl>
                   <p className="text-xs text-muted-foreground">

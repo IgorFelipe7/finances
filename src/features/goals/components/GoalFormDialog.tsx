@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { CurrencyInput } from '@/components/CurrencyInput'
 import { Input } from '@/components/ui/input'
 import { ColorPicker } from '@/features/accounts/components/ColorPicker'
 import { ACCOUNT_COLOR_PRESETS } from '@/features/accounts/constants'
@@ -85,14 +86,13 @@ export function GoalFormDialog({ trigger }: GoalFormDialogProps) {
                   <FormItem>
                     <FormLabel>Valor alvo</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        inputMode="decimal"
-                        placeholder="0,00"
+                      <CurrencyInput
                         disabled={createGoal.isPending}
-                        {...field}
-                        onChange={(event) => field.onChange(event.target.valueAsNumber)}
+                        name={field.name}
+                        ref={field.ref}
+                        value={field.value}
+                        onBlur={field.onBlur}
+                        onValueChange={field.onChange}
                       />
                     </FormControl>
                     <FormMessage />

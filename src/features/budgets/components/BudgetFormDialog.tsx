@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { CurrencyInput } from '@/components/CurrencyInput'
 import { Input } from '@/components/ui/input'
 import { useSaveBudget } from '@/features/budgets/hooks/useBudgetMutations'
 import { budgetFormSchema, type BudgetFormInput } from '@/features/budgets/schemas/budget.schema'
@@ -100,14 +101,13 @@ export function BudgetFormDialog({ trigger, defaultCategory, defaultLimit }: Bud
                 <FormItem>
                   <FormLabel>Limite mensal</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      inputMode="decimal"
-                      placeholder="0,00"
+                    <CurrencyInput
                       disabled={saveBudget.isPending}
-                      {...field}
-                      onChange={(event) => field.onChange(event.target.valueAsNumber)}
+                      name={field.name}
+                      ref={field.ref}
+                      value={field.value}
+                      onBlur={field.onBlur}
+                      onValueChange={field.onChange}
                     />
                   </FormControl>
                   <FormMessage />

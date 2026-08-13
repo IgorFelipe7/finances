@@ -194,3 +194,4 @@ supabase/
 ## License
 
 Private project — all rights reserved.
+

@@ -191,9 +191,11 @@ export function buildFinancialSnapshot(
     .reduce((sum, account) => sum + (balances.get(account.id) ?? account.initial_balance), 0)
 
   const daysRemaining = Math.max(daysInMonth - dayOfMonth, 0)
-  const projectedMonthExpenses = dayOfMonth > 0 ? (confirmedExpenses / dayOfMonth) * daysInMonth : confirmedExpenses
-  // Guard against noisy early-month run-rates (e.g. rent paid on day 1 alone would otherwise look catastrophic).
-  const overspendRisk = dayOfMonth >= 5 && projectedMonthExpenses > confirmedIncome + knownUpcomingIncome && confirmedExpenses > 0
+  // What's already spent plus what's already known to be coming (fixed bills, remaining installments,
+  // card invoices) — NOT a linear run-rate. Extrapolating early spending (e.g. rent paid on day 1) across
+  // the whole month wildly overstates the projection, since real spending isn't uniform day to day.
+  const projectedMonthExpenses = confirmedExpenses + knownUpcomingExpenses
+  const overspendRisk = projectedMonthExpenses > confirmedIncome + knownUpcomingIncome && confirmedExpenses > 0
 
   const freeCashThisMonth = confirmedIncome + knownUpcomingIncome - confirmedExpenses - knownUpcomingExpenses
   const safeToSpendPerDay = Math.max(freeCashThisMonth, 0) / Math.max(daysRemaining, 1)
@@ -275,7 +277,7 @@ export function snapshotToPromptFacts(snapshot: FinancialSnapshot): string {
 
   lines.push(`Receitas confirmadas no mês: ${formatCurrency(snapshot.confirmedIncome)}.`)
   lines.push(`Despesas confirmadas no mês: ${formatCurrency(snapshot.confirmedExpenses)}.`)
-  lines.push(`Projeção de despesa do mês no ritmo atual: ${formatCurrency(snapshot.projectedMonthExpenses)}${snapshot.overspendRisk ? ' (ACIMA da receita — risco de estourar o orçamento)' : ''}.`)
+  lines.push(`Projeção de despesa do mês (já gasto + contas que ainda vêm): ${formatCurrency(snapshot.projectedMonthExpenses)}${snapshot.overspendRisk ? ' (ACIMA da receita — risco de estourar o orçamento)' : ''}.`)
   lines.push(`Contas fixas/parceladas/faturas que ainda vêm este mês: ${formatCurrency(snapshot.knownUpcomingExpenses)}. Receitas fixas que ainda entram: ${formatCurrency(snapshot.knownUpcomingIncome)}.`)
   lines.push(`Sobra livre estimada para o resto do mês: ${formatCurrency(snapshot.freeCashThisMonth)} (~${formatCurrency(snapshot.safeToSpendPerDay)}/dia nos ${snapshot.daysRemaining} dias restantes).`)
   lines.push(`Sugestão de quanto guardar este mês: ${formatCurrency(snapshot.recommendedSavings)} (baseado em receita e sobra livre, nunca mais do que o que realmente sobra).`)

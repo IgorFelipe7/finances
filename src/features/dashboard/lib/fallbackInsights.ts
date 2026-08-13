@@ -34,7 +34,7 @@ export function buildFallbackInsights(snapshot: FinancialSnapshot): Insight[] {
     insights.push({
       tone: 'warning',
       headline: 'Ritmo de gasto alto',
-      message: `No ritmo atual, você deve fechar o mês gastando ${formatCurrency(snapshot.projectedMonthExpenses)} — acima do que entrou até agora. Vale segurar um pouco.`,
+      message: `Somando o que já gastou com as contas que ainda vêm, o mês deve fechar em ${formatCurrency(snapshot.projectedMonthExpenses)} — acima do que entra. Vale segurar um pouco.`,
     })
   }
 

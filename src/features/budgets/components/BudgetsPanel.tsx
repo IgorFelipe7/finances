@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { AlertTriangle, Trash2, Wallet2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { BudgetFormDialog } from '@/features/budgets/components/BudgetFormDialog'
+import { MeteredListSkeleton } from '@/features/dashboard/components/PanelSkeletons'
 import { useDeleteBudget } from '@/features/budgets/hooks/useBudgetMutations'
 import { useBudgetProgress } from '@/features/budgets/hooks/useBudgetProgress'
 import type { BudgetProgress } from '@/features/budgets/lib/computeBudgetProgress'
@@ -33,7 +34,7 @@ function BudgetRow({ budget, index }: { budget: BudgetProgress; index: number })
           {budget.category}
         </span>
         <div className="flex items-center gap-2">
-          <span className={cn('text-xs tabular-nums', style.text)}>
+          <span className={cn('text-xs num', style.text)}>
             {formatMoney(budget.spent)} <span className="text-muted-foreground">/ {formatMoney(budget.limit)}</span>
           </span>
           <Button
@@ -63,10 +64,10 @@ function BudgetRow({ budget, index }: { budget: BudgetProgress; index: number })
 export function BudgetsPanel() {
   const { progress, isLoading } = useBudgetProgress()
 
-  if (isLoading) return <div className="glass-panel h-40 animate-pulse rounded-xl" />
+  if (isLoading) return <MeteredListSkeleton label="Carregando orçamentos por categoria" />
 
   return (
-    <div className="glass-panel rounded-xl p-5">
+    <div className="surface-panel h-full rounded-xl p-5">
       <div className="mb-3 flex items-center justify-between">
         <h3 className="flex items-center gap-1.5 text-sm font-medium text-foreground">
           <Wallet2 className="size-4 text-primary" />

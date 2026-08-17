@@ -1,4 +1,4 @@
-import { MoreHorizontal } from 'lucide-react'
+import { DotsThreeOutline } from '@phosphor-icons/react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
   DropdownMenu,
@@ -21,7 +21,7 @@ export function BottomNav() {
   const isOverflowActive = overflowItems.some((item) => item.href === location.pathname)
 
   return (
-    <nav className="glass-panel fixed inset-x-0 bottom-0 z-40 flex items-center justify-around px-1 py-2 md:hidden">
+    <nav className="surface-panel fixed inset-x-0 bottom-0 z-40 flex items-center justify-around px-1 py-2 lg:hidden">
       {primaryItems.map((item) => (
         <NavLink
           key={item.href}
@@ -47,7 +47,7 @@ export function BottomNav() {
               isOverflowActive && 'text-primary',
             )}
           >
-            <MoreHorizontal className="size-5" />
+            <DotsThreeOutline className="size-5" weight="fill" />
             <span>Mais</span>
           </button>
         </DropdownMenuTrigger>

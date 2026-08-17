@@ -5,9 +5,14 @@ import { useTransactions } from '@/features/transactions/hooks/useTransactions'
 
 const WINDOW_SIZE = 6
 
-export function useNetWorthHistory(): NetWorthPoint[] {
-  const { data: accounts = [] } = useAccounts()
-  const { data: transactions = [] } = useTransactions()
+export function useNetWorthHistory(): { points: NetWorthPoint[]; isLoading: boolean } {
+  const { data: accounts = [], isLoading: accountsLoading } = useAccounts()
+  const { data: transactions = [], isLoading: transactionsLoading } = useTransactions()
 
-  return useMemo(() => computeNetWorthHistory(accounts, transactions, WINDOW_SIZE), [accounts, transactions])
+  const points = useMemo(
+    () => computeNetWorthHistory(accounts, transactions, WINDOW_SIZE),
+    [accounts, transactions],
+  )
+
+  return { points, isLoading: accountsLoading || transactionsLoading }
 }

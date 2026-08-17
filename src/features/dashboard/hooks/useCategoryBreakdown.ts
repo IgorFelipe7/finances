@@ -16,12 +16,12 @@ const MAX_SLICES = 5
  * and known fixed/installment charges still pending (a committed expense, not speculation) —
  * folded into "Outros" past the top 5.
  */
-export function useCategoryBreakdown(): { slices: CategorySlice[]; total: number } {
-  const { data: transactions = [] } = useTransactions()
+export function useCategoryBreakdown(): { slices: CategorySlice[]; total: number; isLoading: boolean } {
+  const { data: transactions = [], isLoading } = useTransactions()
   const selectedMonth = useTimeTravelStore((state) => state.selectedMonth)
   const selectedYear = useTimeTravelStore((state) => state.selectedYear)
 
-  return useMemo(() => {
+  const breakdown = useMemo(() => {
     const periodStartTime = new Date(selectedYear, selectedMonth, 1).getTime()
     const periodEndTime = new Date(selectedYear, selectedMonth + 1, 0).getTime()
     const totals = computeCategoryTotals(transactions, periodStartTime, periodEndTime)
@@ -55,4 +55,6 @@ export function useCategoryBreakdown(): { slices: CategorySlice[]; total: number
       })),
     }
   }, [transactions, selectedMonth, selectedYear])
+
+  return { ...breakdown, isLoading }
 }

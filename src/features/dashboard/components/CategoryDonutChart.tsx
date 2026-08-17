@@ -1,5 +1,6 @@
 import { PieChart as PieChartIcon } from 'lucide-react'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip, type TooltipContentProps } from 'recharts'
+import { DonutPanelSkeleton } from '@/features/dashboard/components/PanelSkeletons'
 import { useCategoryBreakdown } from '@/features/dashboard/hooks/useCategoryBreakdown'
 import { useMoneyFormatter } from '@/hooks/useMoneyFormatter'
 
@@ -24,18 +25,20 @@ function CategoryTooltip({ active, payload }: TooltipContentProps) {
       </p>
       <div className="flex items-center justify-between gap-4">
         <span className="text-muted-foreground">{(percent * 100).toFixed(0)}% do total</span>
-        <span className="font-semibold tabular-nums text-foreground">{formatMoney(Number(entry.value))}</span>
+        <span className="font-semibold num text-foreground">{formatMoney(Number(entry.value))}</span>
       </div>
     </div>
   )
 }
 
 export function CategoryDonutChart() {
-  const { slices, total } = useCategoryBreakdown()
+  const { slices, total, isLoading } = useCategoryBreakdown()
   const { formatMoney } = useMoneyFormatter()
 
+  if (isLoading) return <DonutPanelSkeleton label="Carregando despesas por categoria" />
+
   return (
-    <div className="glass-panel flex flex-col rounded-xl p-5">
+    <div className="surface-panel flex h-full flex-col rounded-xl p-5">
       <div className="mb-4">
         <h3 className="flex items-center gap-1.5 text-sm font-medium text-foreground">
           <PieChartIcon className="size-4 text-primary" />
@@ -73,7 +76,7 @@ export function CategoryDonutChart() {
               </PieChart>
             </ResponsiveContainer>
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-              <p className="text-lg font-bold tabular-nums text-foreground">{formatMoney(total)}</p>
+              <p className="text-lg font-bold num text-foreground">{formatMoney(total)}</p>
               <p className="text-[11px] text-muted-foreground">total no mês</p>
             </div>
           </div>
@@ -88,7 +91,7 @@ export function CategoryDonutChart() {
                   />
                   <span className="truncate">{slice.category}</span>
                 </span>
-                <span className="flex shrink-0 items-center gap-2 tabular-nums">
+                <span className="flex shrink-0 items-center gap-2 num">
                   <span className="text-muted-foreground">{(slice.percent * 100).toFixed(0)}%</span>
                   <span className="font-medium text-foreground">{formatMoney(slice.amount)}</span>
                 </span>

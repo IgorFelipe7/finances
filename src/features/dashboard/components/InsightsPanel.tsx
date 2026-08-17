@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { AlertOctagon, AlertTriangle, Lightbulb, PartyPopper, RotateCw, Sparkles, type LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Skeleton, SkeletonPanel } from '@/components/ui/skeleton'
 import { useFinancialInsights } from '@/features/dashboard/hooks/useFinancialInsights'
 import type { Insight, InsightTone } from '@/features/dashboard/schemas/insight.schema'
 import { useMoneyFormatter } from '@/hooks/useMoneyFormatter'
@@ -8,7 +9,7 @@ import { cn } from '@/lib/utils'
 
 const TONE_META: Record<
   InsightTone,
-  { icon: LucideIcon; text: string; bar: string; border: string; ring: string; glow: string }
+  { icon: LucideIcon; text: string; bar: string; border: string; ring: string }
 > = {
   danger: {
     icon: AlertOctagon,
@@ -16,7 +17,6 @@ const TONE_META: Record<
     bar: 'bg-destructive',
     border: 'border-l-destructive',
     ring: 'ring-destructive/25',
-    glow: 'shadow-[0_0_40px_-12px_var(--destructive)]',
   },
   warning: {
     icon: AlertTriangle,
@@ -24,7 +24,6 @@ const TONE_META: Record<
     bar: 'bg-chart-3',
     border: 'border-l-chart-3',
     ring: 'ring-chart-3/25',
-    glow: 'shadow-[0_0_40px_-12px_var(--chart-3)]',
   },
   success: {
     icon: PartyPopper,
@@ -32,7 +31,6 @@ const TONE_META: Record<
     bar: 'bg-positive',
     border: 'border-l-positive',
     ring: 'ring-positive/25',
-    glow: 'shadow-[0_0_40px_-12px_var(--positive)]',
   },
   info: {
     icon: Lightbulb,
@@ -40,7 +38,6 @@ const TONE_META: Record<
     bar: 'bg-primary',
     border: 'border-l-primary',
     ring: 'ring-primary/25',
-    glow: 'shadow-[0_0_40px_-12px_var(--primary)]',
   },
 }
 
@@ -52,7 +49,7 @@ function InsightHero({ insight }: { insight: Insight }) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className={cn('glass-panel relative flex items-start gap-4 overflow-hidden rounded-xl p-5 ring-1', meta.ring, meta.glow)}
+      className={cn('surface-panel relative flex items-start gap-4 overflow-hidden rounded-xl p-5 ring-1', meta.ring)}
     >
       <span className={cn('absolute inset-y-0 left-0 w-1', meta.bar)} />
       <span className={cn('flex size-10 shrink-0 items-center justify-center rounded-full bg-muted', meta.text)}>
@@ -88,16 +85,31 @@ function InsightCard({ insight, index }: { insight: Insight; index: number }) {
   )
 }
 
+/** Mirrors the hero insight + the scrolling row of secondary cards below it. */
 function InsightsSkeleton() {
   return (
-    <div className="space-y-3">
-      <div className="glass-panel h-20 animate-pulse rounded-xl" />
-      <div className="flex gap-3">
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="h-24 w-64 shrink-0 animate-pulse rounded-xl bg-muted" />
+    <SkeletonPanel label="Gerando análises" className="space-y-3">
+      <div className="surface-panel flex items-start gap-4 rounded-xl p-5">
+        <Skeleton className="size-10 shrink-0 rounded-full" />
+        <div className="min-w-0 flex-1 space-y-2">
+          <Skeleton className="h-4 w-56 max-w-full" />
+          <Skeleton className="h-3 w-full max-w-lg" />
+        </div>
+      </div>
+
+      <div className="flex gap-3 overflow-hidden">
+        {[0, 1, 2].map((index) => (
+          <div key={index} className="surface-panel w-64 shrink-0 space-y-2 rounded-xl p-4">
+            <div className="flex items-center gap-2">
+              <Skeleton className="size-4 shrink-0 rounded-full" />
+              <Skeleton className="h-3.5 w-28" />
+            </div>
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-4/5" />
+          </div>
         ))}
       </div>
-    </div>
+    </SkeletonPanel>
   )
 }
 

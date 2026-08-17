@@ -1,6 +1,6 @@
 import { lazy, Suspense, type ReactNode } from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
-import { PageLoader } from '@/components/PageLoader'
+import { AppShellSkeleton, PageLoader } from '@/components/PageLoader'
 import { ProtectedRoute } from '@/routes/ProtectedRoute'
 import { PublicRoute } from '@/routes/PublicRoute'
 
@@ -18,9 +18,13 @@ const RetrospectivePage = lazy(() =>
 )
 const SettingsPage = lazy(() => import('@/routes/SettingsPage').then((m) => ({ default: m.SettingsPage })))
 
-/** Each route's chunk loads on first visit — this is the Suspense boundary that shows while it fetches. */
-function lazyPage(element: ReactNode) {
-  return <Suspense fallback={<PageLoader />}>{element}</Suspense>
+/**
+ * Each route's chunk loads on first visit — this is the Suspense boundary that shows
+ * while it fetches. Pages behind the app shell fall back to the shell skeleton so the
+ * sidebar and topbar don't pop in; the login chunk has no shell, so it gets PageLoader.
+ */
+function lazyPage(element: ReactNode, fallback: ReactNode = <AppShellSkeleton />) {
+  return <Suspense fallback={fallback}>{element}</Suspense>
 }
 
 export const router = createBrowserRouter([
@@ -32,7 +36,7 @@ export const router = createBrowserRouter([
     path: '/login',
     element: (
       <PublicRoute>
-        {lazyPage(<LoginPage />)}
+        {lazyPage(<LoginPage />, <PageLoader />)}
       </PublicRoute>
     ),
   },

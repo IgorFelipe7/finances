@@ -29,12 +29,12 @@ function computeNetWorth(accounts: Account[], balances: Map<string, number>) {
  * unpaid, i.e. Time Travel), plus this month's income/expense totals.
  */
 export function useAccountBalances() {
-  const { data: accounts = [] } = useAccounts()
-  const { data: transactions = [] } = useTransactions()
+  const { data: accounts = [], isLoading: accountsLoading } = useAccounts()
+  const { data: transactions = [], isLoading: transactionsLoading } = useTransactions()
   const selectedMonth = useTimeTravelStore((state) => state.selectedMonth)
   const selectedYear = useTimeTravelStore((state) => state.selectedYear)
 
-  return useMemo(() => {
+  const snapshot = useMemo(() => {
     const periodStartTime = new Date(selectedYear, selectedMonth, 1).getTime()
     const periodEndTime = new Date(selectedYear, selectedMonth + 1, 0).getTime()
 
@@ -92,4 +92,8 @@ export function useAccountBalances() {
       monthlyExpenses,
     }
   }, [accounts, transactions, selectedMonth, selectedYear])
+
+  // Surfaced so panels can tell "still fetching" apart from "genuinely empty" — both
+  // reduce to an empty array here, and only the query state distinguishes them.
+  return { ...snapshot, isLoading: accountsLoading || transactionsLoading }
 }

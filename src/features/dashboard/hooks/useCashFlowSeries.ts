@@ -23,12 +23,12 @@ const WINDOW_SIZE = 6
  * (`is_projected`, from a fixed/installment anchor) — so the chart reads as
  * "what happened, plus what's already locked in" rather than raw pending clutter.
  */
-export function useCashFlowSeries(): CashFlowPoint[] {
-  const { data: transactions = [] } = useTransactions()
+export function useCashFlowSeries(): { points: CashFlowPoint[]; isLoading: boolean } {
+  const { data: transactions = [], isLoading } = useTransactions()
   const selectedMonth = useTimeTravelStore((state) => state.selectedMonth)
   const selectedYear = useTimeTravelStore((state) => state.selectedYear)
 
-  return useMemo(() => {
+  const points = useMemo(() => {
     const windowEndTime = new Date(selectedYear, selectedMonth + 1, 0).getTime()
     const expanded = withProjections(transactions, windowEndTime)
 
@@ -47,7 +47,7 @@ export function useCashFlowSeries(): CashFlowPoint[] {
       buckets.set(key, bucket)
     }
 
-    const points: CashFlowPoint[] = []
+    const series: CashFlowPoint[] = []
     for (let offset = WINDOW_SIZE - 1; offset >= 0; offset--) {
       const date = new Date(selectedYear, selectedMonth - offset, 1)
       const month = date.getMonth()
@@ -55,7 +55,7 @@ export function useCashFlowSeries(): CashFlowPoint[] {
       const key = `${year}-${month}`
       const bucket = buckets.get(key) ?? { income: 0, expense: 0 }
 
-      points.push({
+      series.push({
         key,
         label: MONTH_NAMES_PT_BR[month].slice(0, 3),
         month,
@@ -67,6 +67,8 @@ export function useCashFlowSeries(): CashFlowPoint[] {
       })
     }
 
-    return points
+    return series
   }, [transactions, selectedMonth, selectedYear])
+
+  return { points, isLoading }
 }

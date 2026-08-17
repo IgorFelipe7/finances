@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
-import { Sidebar } from '@/components/layout/Sidebar'
 import { BottomNav } from '@/components/layout/BottomNav'
-import { Topbar } from '@/components/layout/Topbar'
+import { TopNav } from '@/components/layout/TopNav'
 import { AssistantLauncher } from '@/features/assistant/components/AssistantLauncher'
 import { AssistantPanel } from '@/features/assistant/components/AssistantPanel'
 import { CommandPalette } from '@/features/command-palette/components/CommandPalette'
@@ -9,18 +8,20 @@ import { OnboardingWizard } from '@/features/onboarding/components/OnboardingWiz
 
 interface AppLayoutProps {
   title: string
+  /** Pages that open with their own headline (the dashboard greeting) suppress the h1. */
+  hideTitle?: boolean
   children: ReactNode
 }
 
-export function AppLayout({ title, children }: AppLayoutProps) {
+export function AppLayout({ title, hideTitle = false, children }: AppLayoutProps) {
   return (
-    <div className="flex min-h-svh bg-background">
-      <Sidebar />
+    <div className="flex min-h-svh flex-col bg-background">
+      <TopNav />
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar title={title} />
-        <main className="flex-1 overflow-y-auto p-4 pb-24 md:p-8 md:pb-8">{children}</main>
-      </div>
+      <main className="mx-auto w-full max-w-[1600px] flex-1 px-4 pb-24 md:px-6 md:pb-8">
+        {!hideTitle && <h1 className="mb-5 text-2xl font-semibold tracking-tight text-foreground">{title}</h1>}
+        {children}
+      </main>
 
       <BottomNav />
       <AssistantLauncher />

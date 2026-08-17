@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+@import "@fontsource-variable/jetbrains-mono";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -10,10 +11,17 @@
  * and mapped into Tailwind's utility namespace here, so `bg-background`,
  * `text-foreground`, `border-border`, etc. resolve to them. This app is
  * dark-mode-native: `.dark` is applied on <html> unconditionally in index.html.
+ *
+ * Art direction: monochrome base, one cold accent. The neutral ramp is true
+ * greyscale (zero chroma) so the single accent hue is the only colour in the
+ * interface that isn't semantic (positive / destructive / chart series).
+ * Surfaces are flat and separated by hairline borders — no blur, no glow.
  */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
@@ -49,111 +57,118 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --radius-sm: calc(var(--radius) - 4px);
+  --radius-sm: calc(var(--radius) - 3px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 3px);
 
   --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
 }
 
 :root {
-  --radius: 0.75rem;
+  /* Tighter than the old 0.75rem — small radii read more precise at data density. */
+  --radius: 0.5rem;
 
-  /* Light theme — same brand primary as .dark, neutral base flipped to a soft off-white. */
-  --background: oklch(0.99 0.002 286.32);
-  --foreground: oklch(0.141 0.005 285.823);
+  /* Light theme — same accent hue as .dark, darkened for contrast on a white canvas. */
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.16 0 0);
+  --surface: oklch(1 0 0);
+  --surface-raised: oklch(0.975 0 0);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.141 0.005 285.823);
+  --card-foreground: oklch(0.16 0 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.141 0.005 285.823);
+  --popover-foreground: oklch(0.16 0 0);
 
-  --primary: oklch(0.585 0.233 277.117);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.955 0.003 286.32);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.955 0.003 286.32);
-  --muted-foreground: oklch(0.472 0.013 285.938);
-  --accent: oklch(0.937 0.03 277.117);
-  --accent-foreground: oklch(0.33 0.1 277.117);
+  --primary: oklch(0.55 0.12 209);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.96 0 0);
+  --secondary-foreground: oklch(0.22 0 0);
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.46 0 0);
+  --accent: oklch(0.94 0 0);
+  --accent-foreground: oklch(0.22 0 0);
 
-  --destructive: oklch(0.55 0.22 16.439);
-  --destructive-foreground: oklch(0.985 0 0);
-  --positive: oklch(0.5 0.14 149.579);
-  --positive-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.55 0.2 25.5);
+  --destructive-foreground: oklch(0.99 0 0);
+  --positive: oklch(0.52 0.15 158);
+  --positive-foreground: oklch(0.99 0 0);
 
-  --border: oklch(0.912 0.005 286.32);
-  --input: oklch(0.882 0.006 286.32);
-  --ring: oklch(0.585 0.233 277.117 / 45%);
+  --border: oklch(0 0 0 / 10%);
+  --input: oklch(0 0 0 / 14%);
+  --ring: oklch(0.55 0.12 209 / 40%);
 
-  --chart-1: oklch(0.585 0.233 277.117);
-  --chart-2: oklch(0.5 0.14 149.579);
-  --chart-3: oklch(0.65 0.19 70.08);
-  --chart-4: oklch(0.55 0.22 16.439);
-  --chart-5: oklch(0.55 0.12 215.221);
+  --chart-1: oklch(0.55 0.12 209);
+  --chart-2: oklch(0.52 0.15 158);
+  --chart-3: oklch(0.62 0.13 78);
+  --chart-4: oklch(0.55 0.2 25.5);
+  --chart-5: oklch(0.52 0.04 250);
 
-  --sidebar: oklch(0.972 0.002 286.32);
-  --sidebar-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-primary: oklch(0.585 0.233 277.117);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.937 0.03 277.117);
-  --sidebar-accent-foreground: oklch(0.33 0.1 277.117);
-  --sidebar-border: oklch(0.912 0.005 286.32);
-  --sidebar-ring: oklch(0.585 0.233 277.117 / 45%);
+  --sidebar: oklch(0.975 0 0);
+  --sidebar-foreground: oklch(0.16 0 0);
+  --sidebar-primary: oklch(0.55 0.12 209);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.94 0 0);
+  --sidebar-accent-foreground: oklch(0.22 0 0);
+  --sidebar-border: oklch(0 0 0 / 9%);
+  --sidebar-ring: oklch(0.55 0.12 209 / 40%);
 
-  --glass-bg: oklch(1 0 0 / 65%);
-  --glass-border: oklch(0.141 0.005 285.823 / 8%);
-  --glass-shadow-1: oklch(1 0 0 / 70%);
-  --glass-shadow-2: oklch(0.141 0.005 285.823 / 10%);
+  --surface-border: oklch(0 0 0 / 9%);
+
+  --skeleton-base: oklch(0.93 0 0);
+  --skeleton-sheen: oklch(1 0 0 / 85%);
 
   --font-sans: 'Geist Variable', 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 .dark {
-  --background: oklch(0.141 0.005 285.823);
+  --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.21 0.006 285.885);
+  --surface: oklch(0.185 0 0);
+  --surface-raised: oklch(0.215 0 0);
+  --card: oklch(0.185 0 0);
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.21 0.006 285.885);
+  --popover: oklch(0.215 0 0);
   --popover-foreground: oklch(0.985 0 0);
 
-  --primary: oklch(0.585 0.233 277.117);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.274 0.006 286.033);
+  --primary: oklch(0.78 0.13 196);
+  --primary-foreground: oklch(0.145 0 0);
+  --secondary: oklch(0.245 0 0);
   --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
+  --muted: oklch(0.245 0 0);
+  --muted-foreground: oklch(0.66 0 0);
+  --accent: oklch(0.265 0 0);
   --accent-foreground: oklch(0.985 0 0);
 
-  --destructive: oklch(0.645 0.246 16.439);
-  --destructive-foreground: oklch(0.985 0 0);
-  --positive: oklch(0.72 0.19 149.579);
-  --positive-foreground: oklch(0.145 0.02 149.579);
+  --destructive: oklch(0.68 0.19 25.5);
+  --destructive-foreground: oklch(0.145 0 0);
+  --positive: oklch(0.77 0.17 158);
+  --positive-foreground: oklch(0.145 0 0);
 
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.585 0.233 277.117 / 50%);
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.78 0.13 196 / 45%);
 
-  --chart-1: oklch(0.585 0.233 277.117);
-  --chart-2: oklch(0.72 0.19 149.579);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.645 0.246 16.439);
-  --chart-5: oklch(0.715 0.143 215.221);
+  --chart-1: oklch(0.78 0.13 196);
+  --chart-2: oklch(0.77 0.17 158);
+  --chart-3: oklch(0.82 0.14 82);
+  --chart-4: oklch(0.68 0.19 25.5);
+  --chart-5: oklch(0.62 0.04 250);
 
-  --sidebar: oklch(0.18 0.006 285.885);
+  --sidebar: oklch(0.165 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.585 0.233 277.117);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
+  --sidebar-primary: oklch(0.78 0.13 196);
+  --sidebar-primary-foreground: oklch(0.145 0 0);
+  --sidebar-accent: oklch(0.245 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.585 0.233 277.117 / 50%);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.78 0.13 196 / 45%);
 
-  --glass-bg: oklch(0 0 0 / 40%);
-  --glass-border: oklch(1 0 0 / 10%);
-  --glass-shadow-1: oklch(1 0 0 / 6%);
-  --glass-shadow-2: oklch(0 0 0 / 60%);
+  --surface-border: oklch(1 0 0 / 8%);
+
+  --skeleton-base: oklch(0.225 0 0);
+  --skeleton-sheen: oklch(1 0 0 / 7%);
 }
 
 @layer base {
@@ -174,13 +189,61 @@
   }
 }
 
-/* Reusable glassmorphism surface — colors sourced from theme tokens, swaps automatically between themes */
+@keyframes skeleton-sweep {
+  from {
+    background-position: 180% 0;
+  }
+  to {
+    background-position: -80% 0;
+  }
+}
+
+/*
+ * Loading placeholder surface — a muted block with a slow sheen crossing it. The
+ * <Skeleton> component drops this utility entirely when the user has reduced motion
+ * on, leaving the flat base color, so the animation never needs a media-query escape.
+ */
+@utility skeleton-sweep {
+  background-color: var(--skeleton-base);
+  background-image: linear-gradient(90deg, transparent 20%, var(--skeleton-sheen) 50%, transparent 80%);
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.8s ease-in-out infinite;
+}
+
+@utility skeleton-flat {
+  background-color: var(--skeleton-base);
+}
+
+/*
+ * The panel primitive: a flat surface separated from the page by a hairline border.
+ * Deliberately no backdrop blur and no large drop shadow — depth is communicated by
+ * the border and the surface step, which is what keeps dense data legible.
+ */
+@utility surface-panel {
+  background-color: var(--surface);
+  border: 1px solid var(--surface-border);
+}
+
+/* A step above `surface-panel`, for nested blocks that need to read as raised. */
+@utility surface-raised {
+  background-color: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+}
+
+/*
+ * Deprecated alias kept so the routes not yet migrated off the old glassmorphism
+ * keep rendering a valid surface. New code should use `surface-panel`.
+ */
 @utility glass-panel {
-  background-color: var(--glass-bg);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--glass-border);
-  box-shadow:
-    0 1px 0 0 var(--glass-shadow-1) inset,
-    0 24px 48px -24px var(--glass-shadow-2);
+  background-color: var(--surface);
+  border: 1px solid var(--surface-border);
+}
+
+/*
+ * Financial figures. Mono digits are fixed-width by construction, and tabular-nums
+ * keeps any proportional fallback aligned too, so columns of money never shift.
+ */
+@utility num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }

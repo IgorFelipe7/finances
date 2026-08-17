@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Search } from 'lucide-react'
+import { MagnifyingGlass } from '@phosphor-icons/react'
 import { useNavigate } from 'react-router-dom'
 import { COMMANDS, type Command } from '@/features/command-palette/commands'
 import { useCommandPaletteStore } from '@/features/command-palette/store/useCommandPaletteStore'
 import { useAssistantStore } from '@/features/assistant/store/useAssistantStore'
-import { useUIPreferencesStore } from '@/features/settings/store/useUIPreferencesStore'
 import { cn } from '@/lib/utils'
 
 export function CommandPalette() {
@@ -14,8 +13,6 @@ export function CommandPalette() {
   const toggle = useCommandPaletteStore((state) => state.toggle)
 
   const openAssistant = useAssistantStore((state) => state.open)
-  const sidebarCollapsed = useUIPreferencesStore((state) => state.sidebarCollapsed)
-  const setSidebarCollapsed = useUIPreferencesStore((state) => state.setSidebarCollapsed)
 
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
@@ -60,9 +57,6 @@ export function CommandPalette() {
       case 'open-assistant':
         openAssistant()
         break
-      case 'toggle-sidebar':
-        setSidebarCollapsed(!sidebarCollapsed)
-        break
     }
   }
 
@@ -98,7 +92,7 @@ export function CommandPalette() {
             className="glass-panel w-full max-w-lg overflow-hidden rounded-xl"
           >
             <div className="flex items-center gap-2.5 border-b border-border px-4 py-3">
-              <Search className="size-4 shrink-0 text-muted-foreground" />
+              <MagnifyingGlass className="size-4 shrink-0 text-muted-foreground" weight="bold" />
               <input
                 ref={inputRef}
                 value={query}

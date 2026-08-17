@@ -10,6 +10,7 @@ import {
   YAxis,
   type TooltipContentProps,
 } from 'recharts'
+import { ChartPanelSkeleton } from '@/features/dashboard/components/PanelSkeletons'
 import { useCashFlowSeries } from '@/features/dashboard/hooks/useCashFlowSeries'
 import { useMoneyFormatter } from '@/hooks/useMoneyFormatter'
 import { cn } from '@/lib/utils'
@@ -30,18 +31,18 @@ function CashFlowTooltip({ active, payload, label }: TooltipContentProps) {
             <span className="h-0.5 w-3 rounded-full bg-positive" />
             Receitas
           </span>
-          <span className="font-semibold tabular-nums text-foreground">{formatMoney(Number(income))}</span>
+          <span className="font-semibold num text-foreground">{formatMoney(Number(income))}</span>
         </div>
         <div className="flex items-center justify-between gap-4">
           <span className="flex items-center gap-1.5 text-muted-foreground">
             <span className="h-0.5 w-3 rounded-full bg-destructive" />
             Despesas
           </span>
-          <span className="font-semibold tabular-nums text-foreground">{formatMoney(Number(expense))}</span>
+          <span className="font-semibold num text-foreground">{formatMoney(Number(expense))}</span>
         </div>
         <div className="mt-1.5 flex items-center justify-between gap-4 border-t border-border pt-1.5">
           <span className="text-muted-foreground">Saldo</span>
-          <span className={cn('font-semibold tabular-nums', net >= 0 ? 'text-positive' : 'text-destructive')}>
+          <span className={cn('font-semibold num', net >= 0 ? 'text-positive' : 'text-destructive')}>
             {formatMoney(net)}
           </span>
         </div>
@@ -60,13 +61,15 @@ function LegendSwatch({ colorClassName, label }: { colorClassName: string; label
 }
 
 export function CashFlowAreaChart() {
-  const points = useCashFlowSeries()
+  const { points, isLoading } = useCashFlowSeries()
   const { formatMoneyCompact } = useMoneyFormatter()
   const todayIndex = points.findIndex((point) => point.isFuture)
   const referenceLabel = todayIndex > 0 ? points[todayIndex - 1].label : null
 
+  if (isLoading) return <ChartPanelSkeleton plotClassName="h-64" label="Carregando fluxo de caixa" />
+
   return (
-    <div className="glass-panel flex h-full flex-col rounded-xl p-5">
+    <div className="surface-panel flex h-full flex-col rounded-xl p-5">
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h3 className="flex items-center gap-1.5 text-sm font-medium text-foreground">
@@ -81,7 +84,8 @@ export function CashFlowAreaChart() {
         </div>
       </div>
 
-      <div className="h-64 flex-1">
+      {/* Definite height, no flex-1 — see NetWorthHistoryChart for why both matter. */}
+      <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
             <defs>
@@ -104,11 +108,12 @@ export function CashFlowAreaChart() {
               tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
               dy={8}
             />
+            {/* width 80: see NetWorthHistoryChart — mono ticks need the extra gutter. */}
             <YAxis
               axisLine={false}
               tickLine={false}
-              width={56}
-              tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
+              width={80}
+              tick={{ fill: 'var(--muted-foreground)', fontSize: 11, fontFamily: 'var(--font-mono)' }}
               tickFormatter={(value) => formatMoneyCompact(Number(value))}
             />
 
